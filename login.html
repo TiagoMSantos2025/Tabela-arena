@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Campeonato ColdFox</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css"> <!-- Supondo que você tenha um arquivo styles.css -->
 </head>
 <body>
     <div class="container login-container">
@@ -22,8 +22,7 @@
     </div>
     <script>
         // login.js - para a página de login
-        const CORRECT_USERNAME = 'admin'; // <<< Usuário de login
-        const CORRECT_PASSWORD = 'coldfoxgg25'; // <<< Senha de login (MESMA DA ADMIN)
+        // REMOVE AS CREDENCIAIS DAQUI!!!
         const ADMIN_LOGGED_IN_KEY = 'coldfoxAdminLoggedIn'; // Chave para indicar login do admin
 
         const usernameInput = document.getElementById('username');
@@ -46,16 +45,31 @@
             const enteredUsername = usernameInput.value.trim();
             const enteredPassword = passwordInput.value.trim();
 
-            if (enteredUsername === CORRECT_USERNAME && enteredPassword === CORRECT_PASSWORD) {
-                // Se o login for bem-sucedido, define a flag de admin logado no localStorage
-                localStorage.setItem(ADMIN_LOGGED_IN_KEY, 'true');
-                showMessage('Login bem-sucedido! Redirecionando...', 'success');
-                setTimeout(() => {
-                    window.location.href = 'admin.html'; // Redireciona para a página de administração
-                }, 1000);
-            } else {
-                showMessage('Usuário ou senha incorretos.', 'error');
-            }
+            // Enviar dados para o servidor para autenticação
+            fetch('/login', {  // Assumindo que você tem um endpoint /login no seu servidor
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: enteredUsername, password: enteredPassword })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Se o login for bem-sucedido, define a flag de admin logado no localStorage
+                    localStorage.setItem(ADMIN_LOGGED_IN_KEY, 'true');
+                    showMessage('Login bem-sucedido! Redirecionando...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'admin.html'; // Redireciona para a página de administração
+                    }, 1000);
+                } else {
+                    showMessage('Usuário ou senha incorretos.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro durante o login:', error);
+                showMessage('Erro ao tentar logar.', 'error');
+            });
         }
 
         // Event Listeners

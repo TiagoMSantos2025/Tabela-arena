@@ -1,0 +1,25 @@
+{
+  "name": "tabela-cold-fox",
+  "version": "1.0.0",
+  "main": "admin-script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TiagoMSantos2025/Tabela-arena.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TiagoMSantos2025/Tabela-arena/issues"
+  },
+  "homepage": "https://github.com/TiagoMSantos2025/Tabela-arena#readme",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "express": "^5.1.0"
+  },
+  "description": ""
+}
