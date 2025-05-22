@@ -1,6 +1,6 @@
 // admin-script.js
-const ADMIN_PASSWORD = 'Arenacold@25'; // Senha para a área de administração - ATENÇÃO: SENHA ATUALIZADA
-const ADMIN_ACCESS_KEY = 'coldfoxAdminLoggedIn';
+const ADMIN_PASSWORD = 'Arenacold29'; // Senha para a área de administração
+const ADMIN_ACCESS_KEY = 'coldfoxAdminLoggedIn'; // Chave para armazenar o status de login na sessionStorage
 const MATCH_IDS_STORAGE_KEY = 'coldfoxMatchIds';
 const PLAYER_NAMES_STORAGE_KEY = 'coldfoxPlayerNames';
 
@@ -25,21 +25,33 @@ let playerNames = []; // [{ name: "Nome", id: 12345 }]
 // --- Funções de Acesso/Logout da Administração ---
 function checkAdminAccess() {
     const hasAccess = sessionStorage.getItem(ADMIN_ACCESS_KEY) === 'true';
+
     if (!hasAccess) {
         let enteredPassword = prompt('Por favor, digite a senha de administrador para acessar esta página:');
+        
         if (enteredPassword === ADMIN_PASSWORD) {
             sessionStorage.setItem(ADMIN_ACCESS_KEY, 'true');
+            // Não há necessidade de recarregar ou redirecionar se o login foi bem-sucedido
+            // A página já está carregada e o acesso foi concedido.
+            // Apenas continue a execução do script para carregar os dados.
         } else {
-            alert('Senha incorreta! Redirecionando para a página de login.');
-            window.location.href = 'login.html';
+            alert('Senha incorreta! Você será redirecionado para a página de login.');
+            window.location.href = 'login.html'; // Redireciona para a página de login
         }
     }
+    // Se já tem acesso (hasAccess é true) ou acabou de logar, o script continua normalmente
 }
 
 function revokeAdminAccess() {
     sessionStorage.removeItem(ADMIN_ACCESS_KEY);
-    window.location.href = 'login.html';
+    window.location.href = 'login.html'; // Sempre redireciona para login ao fazer logout
 }
+
+// Restante do código (loadMatchIds, saveMatchIds, renderMatchIds, addMatchId, removeMatchId,
+// loadPlayerNames, savePlayerNames, renderPlayerNames, addPlayer, removePlayer e Event Listeners)
+// permanece EXATAMENTE como na última versão que te enviei.
+// Não é necessário copiar e colar tudo de novo, apenas a função checkAdminAccess se você já tem o resto.
+
 
 // --- Funções de Gerenciamento de IDs de Partida ---
 function loadMatchIds() {
@@ -171,7 +183,8 @@ function removePlayer(idToRemove) {
 
 // --- Event Listeners ---
 document.addEventListener('DOMContentLoaded', () => {
-    checkAdminAccess();
+    checkAdminAccess(); // Esta função agora lida com o prompt e o redirecionamento
+    // As próximas linhas só serão executadas se o acesso for concedido
     loadMatchIds();
     loadPlayerNames();
 
