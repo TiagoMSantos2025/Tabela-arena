@@ -16,13 +16,20 @@ body {
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     margin: 20px auto;
-    width: 95%; /* <<< ALTERADO para 95% */
-    max-width: 1400px; /* Mantido para telas muito largas */
+    width: 95%;
+    max-width: 1400px;
     box-sizing: border-box;
     text-align: center;
 }
 
-.login-container, .admin-container {
+/* NOVO: Ajustes para o container de admin */
+.admin-container {
+    width: 80%; /* Ocupa 80% da tela em desktops */
+    max-width: 800px; /* Limita a largura máxima para não ficar muito esticado */
+    margin-top: 50px;
+}
+
+.login-container {
     max-width: 400px;
     padding: 40px;
     margin-top: 50px;
@@ -72,7 +79,7 @@ button {
     font-size: 1.1em;
     font-weight: bold;
     transition: background-color 0.3s ease;
-    margin: 5px; /* Espaçamento entre botões */
+    margin: 5px;
 }
 
 button:hover {
@@ -100,7 +107,7 @@ button:hover {
     margin-top: 15px;
     border-radius: 5px;
     font-weight: bold;
-    display: none; /* Esconde por padrão, JS mostra */
+    display: none;
 }
 
 .message.error {
@@ -113,21 +120,14 @@ button:hover {
     color: #008000;
 }
 
-/* hr {
-    border: 0;
-    height: 1px;
-    background: #4a4a6a;
-    margin: 30px 0;
-} */ /* <<< Original, mas o de baixo é mais flexível */
-
 hr {
     border: none;
-    border-top: 1px dashed #4a4a6a; /* Linha tracejada suave */
-    color: #4a4a6a; /* Cor para navegadores antigos */
-    background-color: transparent; /* Garante que a cor de fundo não interfira */
+    border-top: 1px dashed #4a4a6a;
+    color: #4a4a6a;
+    background-color: transparent;
     height: 1px;
     margin: 30px 0;
-    width: 100%; /* Garante que o HR ocupe a largura total */
+    width: 100%;
 }
 
 a {
@@ -143,47 +143,47 @@ a:hover {
 
 /* Tabela de Ranking */
 .table-container {
-    overflow-x: auto; /* Altera de hidden para auto, para permitir rolagem em telas pequenas */
+    overflow-x: auto;
     margin-top: 20px;
-    max-width: 100%; /* Garante que o contêiner não ultrapasse o pai */
+    max-width: 100%;
 }
 
 table {
-    width: 100%; 
+    width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
     background-color: #3a3a5a;
     color: #e0e0e0;
-    table-layout: fixed; /* Ajuda na distribuição de largura */
+    table-layout: fixed;
 }
 
 th, td {
     border: 1px solid #4a4a6a;
-    padding: 8px 10px; 
+    padding: 8px 10px;
     text-align: left;
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 th {
     background-color: #4a4a6a;
     font-weight: bold;
     color: #e6e6fa;
-    position: sticky; 
+    position: sticky;
     top: 0;
     z-index: 1;
 }
 
 /* Estilos para o ranking */
 .ranking-odd {
-    background-color: #ffd70030; /* Amarelo dourado suave (30% opacidade) */
-    color: #e6e6fa; /* Mantém o texto claro */
+    background-color: #ffd70030;
+    color: #e6e6fa;
 }
 
 .ranking-even {
-    background-color: #ffffff1a; /* Branco suave (10% opacidade) */
-    color: #e6e6fa; /* Mantém o texto claro */
+    background-color: #ffffff1a;
+    color: #e6e6fa;
 }
 
 
@@ -191,13 +191,13 @@ th {
 @media screen and (max-width: 768px) {
     table {
         border: 0;
-        table-layout: auto; /* Volta ao layout automático em telas pequenas */
+        table-layout: auto;
     }
 
     table caption {
         font-size: 1.3em;
     }
-  
+
     table thead {
         border: none;
         clip: rect(0 0 0 0);
@@ -208,24 +208,24 @@ th {
         position: absolute;
         width: 1px;
     }
-  
+
     table tr {
         border-bottom: 3px solid #ddd;
         display: block;
         margin-bottom: .625em;
-        background-color: transparent !important; /* Garante que as cores de ranking funcionem */
+        background-color: transparent !important;
     }
-  
+
     table td {
         border-bottom: 1px solid #ddd;
         display: block;
         font-size: .8em;
         text-align: right;
-        white-space: normal; /* Permite quebra de linha em mobile */
-        overflow: visible; /* Garante que o conteúdo seja visível */
-        text-overflow: clip; /* Remove ellipsis em mobile */
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
     }
-  
+
     table td::before {
         content: attr(data-label);
         float: left;
@@ -233,7 +233,7 @@ th {
         text-transform: uppercase;
         color: #e6e6fa;
     }
-  
+
     table td:last-child {
         border-bottom: 0;
     }
@@ -244,6 +244,7 @@ th {
     }
     .login-container, .admin-container {
         padding: 20px;
+        width: 95%; /* Ajusta para mobile */
     }
 
     /* As classes de ranking precisarão ser redefinidas para mobile também */
@@ -260,8 +261,8 @@ th {
     list-style: none;
     padding: 0;
     margin-top: 15px;
-    max-height: 250px; /* Limita a altura */
-    overflow-y: auto; /* Adiciona scroll se lista for grande */
+    max-height: 250px;
+    overflow-y: auto;
     border: 1px solid #4a4a6a;
     border-radius: 5px;
     background-color: #3a3a5a;
@@ -286,26 +287,81 @@ th {
 
 /* Estilos para botões de compartilhamento */
 .share-button {
-    padding: 10px 18px; 
-    font-size: 1em; 
+    padding: 10px 18px;
+    font-size: 1em;
     margin: 5px;
-    display: inline-flex; 
+    display: inline-flex;
     align-items: center;
-    gap: 8px; 
+    gap: 8px;
 }
 
 .whatsapp-button {
-    background-color: #25D366; 
+    background-color: #25D366;
 }
 
 .whatsapp-button:hover {
-    background-color: #1DA851; 
+    background-color: #1DA851;
 }
 
 .discord-button {
-    background-color: #5865F2; 
+    background-color: #5865F2;
 }
 
 .discord-button:hover {
-    background-color: #4B56D8; 
+    background-color: #4B56D8;
+}
+
+/* NOVO: Estilos para o Modal de Senha */
+.modal {
+    display: none; /* Escondido por padrão */
+    position: fixed; /* Fixo na tela */
+    z-index: 10; /* Acima de tudo */
+    left: 0;
+    top: 0;
+    width: 100%; /* Largura total */
+    height: 100%; /* Altura total */
+    overflow: auto; /* Habilita scroll se necessário */
+    background-color: rgba(0,0,0,0.7); /* Fundo semi-transparente */
+    display: flex; /* Para centralizar o conteúdo */
+    justify-content: center; /* Centraliza horizontalmente */
+    align-items: center; /* Centraliza verticalmente */
+}
+
+.modal-content {
+    background-color: #2a2a4a;
+    margin: auto; /* Centraliza verticalmente e horizontalmente */
+    padding: 30px;
+    border: 1px solid #4a4a6a;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.modal-content h2 {
+    color: #e6e6fa;
+    margin-bottom: 15px;
+}
+
+.modal-content p {
+    color: #c0c0c0;
+    margin-bottom: 20px;
+}
+
+#modalPasswordInput {
+    margin-bottom: 15px;
+}
+
+#modalSubmitButton {
+    width: auto; /* Permite que o botão se ajuste ao conteúdo */
+    padding: 10px 20px;
+}
+
+/* Mensagem de erro dentro do modal */
+#modalMessage.error {
+    margin-top: 10px;
+    display: block; /* Garante que a mensagem apareça quando definida */
+    background-color: #ffe0e6;
+    color: #cc0000;
 }
