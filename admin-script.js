@@ -1,5 +1,5 @@
 // admin-script.js
-const ADMIN_PASSWORD = 'coldfoxgg25'; // Senha para a área de administração - CORRIGIDO
+const ADMIN_PASSWORD = 'Arenacold@25'; // Senha para a área de administração - ATENÇÃO: SENHA ATUALIZADA
 const ADMIN_ACCESS_KEY = 'coldfoxAdminLoggedIn';
 const MATCH_IDS_STORAGE_KEY = 'coldfoxMatchIds';
 const PLAYER_NAMES_STORAGE_KEY = 'coldfoxPlayerNames';
