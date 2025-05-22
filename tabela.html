@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campeonato Mensal ColdFox - Registro de Partidas Dota 2</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>🏆 Campeonato Mensal ColdFox - Registro de Partidas Dota 2 🏆</h1>
+        <h2>Maio 2025 - Detalhes dos Confrontos por Partida</h2>
+
+        <p>Dados obtidos da OpenDota API. Atualize para ver os detalhes mais recentes das partidas configuradas.</p>
+        
+        <div class="action-buttons">
+            <button id="refreshButton">Atualizar Partidas</button>
+            <button id="shareWhatsappButton" class="whatsapp-button">Compartilhar no WhatsApp</button>
+        </div>
+
+        <table>
+            <caption>Histórico Detalhado de Partidas do Campeonato ColdFox</caption>
+            <thead>
+                <tr>
+                    <th>Colocação</th> 
+                    <th>Dia da Semana</th>
+                    <th>ID Partida</th>
+                    <th>Data</th>
+                    <th>Hora</th>
+                    <th>Tempo de Partida</th>
+                    <th>Vencedor</th>
+                    <th>Placar</th>
+                    <th>Jogador</th>
+                    <th>K</th>
+                    <th>D</th>
+                    <th>A</th>
+                    <th>Pontos</th>
+                    <th>Heróis</th>
+                </tr>
+            </thead>
+            <tbody id="matchDetailsTableBody">
+                <tr><td colspan="14">Carregando detalhes das partidas...</td></tr> 
+            </tbody>
+        </table>
+
+        <p class="legenda">
+            <strong>K:</strong> Kills | <strong>D:</strong> Deaths | <strong>A:</strong> Assists | <strong>ID Partida:</strong> Identificador da Partida
+        </p>
+
+        <p style="text-align: center; margin-top: 30px;">
+            <a href="admin.html">Acessar Área de Administração</a>
+        </p>
+        
+        <p style="text-align: center; margin-top: 20px;">
+            <button id="logoutTableButton" class="logout-button">Sair da Tabela</button>
+        </p>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>

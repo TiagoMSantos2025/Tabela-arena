@@ -1,0 +1,683 @@
+/* GLOBAIS E FUNDO */
+:root {
+    --bg-dark: #1A202C; /* Um tom de cinza azulado bem escuro */
+    --container-bg: rgba(26, 32, 44, 0.95); /* Fundo dos containers com opacidade */
+    --primary-color: #4299E1; /* Azul vibrante para botões e detalhes */
+    --accent-color: #ECC94B; /* Amarelo dourado para títulos e destaques */
+    --text-light: #E2E8F0; /* Cor do texto principal */
+    --text-muted: #A0AEC0; /* Cor para texto secundário/legendas */
+    --border-color: #2D3748; /* Cor para bordas sutis */
+    --shadow-color: rgba(0, 0, 0, 0.5); /* Cor da sombra */
+    --success-color: #48BB78; /* Verde para sucesso */
+    --error-color: #E53E3E; /* Vermelho para erro */
+
+    /* Novas variáveis para as cores dos itens de time, ajustadas para a imagem */
+    --fluminense-bg: #2C5282; /* Azul um pouco mais escuro para o Fluminense */
+    --botafogo-bg: #4A5568; /* Cinza-azulado para o Botafogo */
+    --item-divider-color: #1A202C; /* Cor da linha fina entre os itens de time, pode ser o bg-dark */
+}
+
+/* IMPORTAÇÃO DA FONTE BESTIME */
+@font-face {
+    font-family: 'Bestime';
+    src: url('./fonts/Bestime.ttf') format('truetype'); /* Ajuste o caminho se a fonte estiver em outro formato */
+    font-weight: normal; /* Define o peso padrão para a fonte */
+    font-style: normal;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%; /* Garante que body ocupe a altura total */
+    font-family: 'Bestime', sans-serif; /* APLICA A FONTE BESTIME AQUI */
+    color: var(--text-light);
+    box-sizing: border-box; /* Inclui padding e borda no cálculo da largura/altura */
+}
+
+body {
+    background-image: url('5R9pWd9l_400x400.jpg'); /* Imagem de fundo */
+    background-repeat: no-repeat; /* Não repete */
+    background-size: cover; /* Cobre toda a área */
+    background-position: center center; /* Centraliza a imagem */
+    background-attachment: fixed; /* Mantém a imagem fixa ao rolar */
+    background-color: var(--bg-dark); /* Cor de fallback */
+    display: flex;
+    flex-direction: column; /* Permite que o conteúdo se empilhe verticalmente */
+    align-items: center; /* Centraliza o conteúdo horizontalmente */
+    padding: 20px; /* Padding geral para as laterais */
+    overflow-x: hidden; /* CRÍTICO: Impede rolagem horizontal em toda a página */
+    overflow-y: auto; /* Permite rolagem vertical se o conteúdo for maior que a tela */
+}
+
+/* Containers principais de conteúdo */
+.container {
+    background-color: var(--container-bg);
+    padding: 30px;
+    border-radius: 12px; /* Bordas mais arredondadas */
+    box-shadow: 0 8px 25px var(--shadow-color); /* Sombra mais pronunciada */
+    width: 100%;
+    max-width: 95%; /* **AJUSTADO AQUI PARA 95%** */
+    margin-bottom: 20px; /* Espaço entre containers se houver mais de um */
+    box-sizing: border-box;
+    display: flex; /* Para flexibilidade interna */
+    flex-direction: column;
+}
+
+/* TÍTULOS E TEXTOS */
+h1, h2, h3 {
+    color: var(--accent-color);
+    text-align: center;
+    margin-bottom: 25px;
+    letter-spacing: 0.05em; /* Espaçamento entre letras */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    font-weight: bold; /* Garante que os títulos sejam bold */
+}
+
+h1 {
+    font-size: 2.5em;
+}
+
+h2 {
+    font-size: 1.8em;
+    border-bottom: 2px solid var(--border-color); /* Linha sutil abaixo dos subtítulos */
+    padding-bottom: 10px;
+    margin-top: 30px;
+}
+
+h3 {
+    font-size: 1.4em;
+    margin-top: 25px;
+}
+
+p {
+    text-align: center;
+    margin-bottom: 15px;
+    line-height: 1.6; /* Aumenta o espaçamento entre linhas para melhor legibilidade */
+    color: var(--text-muted);
+    font-weight: bold; /* Torna o texto do parágrafo mais grosso */
+}
+
+.legenda {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    margin-top: 20px;
+}
+
+/* BOTÕES GERAIS */
+.button-group,
+.action-buttons,
+.action-buttons-admin {
+    display: flex;
+    flex-wrap: wrap; /* Permite quebrar linha */
+    justify-content: center;
+    gap: 15px; /* Espaçamento maior entre botões */
+    margin-top: 20px;
+    margin-bottom: 30px;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 14px 28px; /* Padding generoso */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold; /* Botões já eram bold, mas mantive */
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    text-transform: uppercase; /* Texto em maiúsculas */
+    letter-spacing: 0.05em;
+    font-family: 'Bestime', sans-serif; /* Aplica a fonte aos botões */
+}
+
+button:hover {
+    background-color: #3182CE; /* Tom mais escuro do azul ao hover */
+    transform: translateY(-3px); /* Efeito de "levantar" */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Cores específicas de botões */
+.logout-button {
+    background-color: #718096; /* Cinza para logout */
+}
+.logout-button:hover {
+    background-color: #4A5568;
+}
+
+.go-to-table-button {
+    background-color: #ED8936; /* Laranja para "Ver Tabela" */
+}
+.go-to-table-button:hover {
+    background-color: #DD6B20;
+}
+
+.whatsapp-button {
+    background-color: #48BB78; /* Verde para WhatsApp */
+}
+.whatsapp-button:hover {
+    background-color: #38A169;
+}
+
+/* Botões de Salvar (na admin) */
+#saveMatchIdsButton,
+#savePlayersButton {
+    background-color: var(--success-color); /* Verde para salvar */
+}
+#saveMatchIdsButton:hover,
+#savePlayersButton:hover {
+    background-color: #38A169;
+}
+
+
+/* INPUTS E LABELS */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label,
+.login-input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--text-light);
+    font-size: 1em;
+    font-family: 'Bestime', sans-serif; /* Aplica a fonte aos labels */
+}
+
+input[type="text"],
+input[type="password"] {
+    width: calc(100% - 24px); /* Full width menos padding */
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: #2D3748; /* Fundo do input mais escuro */
+    color: var(--text-light);
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    font-family: 'Bestime', sans-serif; /* Aplica a fonte aos inputs */
+    font-weight: bold; /* Torna o texto do input mais grosso */
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* Brilho ao focar */
+    outline: none;
+}
+
+/* Mensagens de feedback */
+.message {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    font-size: 1em;
+    color: white; /* Texto sempre branco para mensagens */
+    font-family: 'Bestime', sans-serif; /* Aplica a fonte às mensagens */
+}
+
+.message.success {
+    background-color: var(--success-color);
+}
+
+.message.error {
+    background-color: var(--error-color);
+}
+
+/* SEPARADOR */
+hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 40px 0;
+}
+
+/* ====================================================================== */
+/* ESTILOS DA TABELA DE DADOS (PARA image_b444c5.jpg e image_b4ad28.png) */
+/* ====================================================================== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    display: block; /* Necessário para o modo cartão em mobile */
+    border-radius: 8px; /* Bordas arredondadas para a tabela */
+    border: 1px solid var(--border-color);
+    font-family: 'Bestime', sans-serif; /* Aplica a fonte à tabela */
+}
+
+caption {
+    font-size: 1.2em;
+    color: var(--accent-color);
+    margin-bottom: 10px;
+    font-weight: bold;
+    text-align: left;
+    padding-left: 5px;
+    font-family: 'Bestime', sans-serif; /* Aplica a fonte à legenda da tabela */
+}
+
+th, td { /* Aplicar estas propriedades a ambos th e td para uniformidade */
+    padding: 10px 12px; /* **DIMINUI O PADDING PARA DAR MAIS ESPAÇO À FONTE** */
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.85em; /* **DIMINUI O TAMANHO DA FONTE AQUI** */
+    white-space: normal; /* Permite quebra de linha para TD por padrão */
+    word-break: break-word; /* Garante quebra para palavras longas que não cabem */
+    overflow-wrap: break-word; /* Suporte para navegadores mais antigos */
+    text-transform: uppercase; /* Transforma o texto em maiúsculas */
+    letter-spacing: 0.03em; /* Adiciona espaçamento entre as letras */
+    font-weight: bold; /* Mantém o texto da célula mais grosso */
+}
+
+th {
+    background-color: #2D3748; /* Fundo do cabeçalho da tabela */
+    color: var(--accent-color);
+    font-weight: bold;
+    white-space: nowrap; /* IMPEDE QUEBRA DE LINHA PARA TODOS OS CABEÇALHOS */
+    word-break: normal; /* Garante que não haja quebra de palavras dentro do nowrap */
+    overflow-wrap: normal; /* Garante que não haja quebra de palavras dentro do nowrap */
+}
+
+/* Estilo para as linhas da tabela */
+tr:nth-child(even) {
+    background-color: rgba(30, 41, 59, 0.6); /* Fundo ligeiramente diferente para linhas pares */
+}
+
+tr:nth-child(odd) {
+    background-color: rgba(26, 32, 44, 0.6); /* Fundo para linhas ímpares */
+}
+
+/* Estilo para a última borda da tabela */
+tr:last-child td {
+    border-bottom: none;
+}
+
+/* ====================================================================== */
+/* ESTILOS PARA OS ITENS DO TIME (PARA REPLICAR A IMAGEM 1526.65.65.JPG) */
+/* ====================================================================== */
+
+.container-times {
+    width: 100%;
+    max-width: 350px; /* Ajuste a largura máxima conforme necessário para se aproximar da imagem */
+    margin: 30px auto; /* Centraliza e adiciona espaço */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    border-radius: 8px; /* Arredondamento geral do container */
+    overflow: hidden; /* Garante que os border-radius dos itens funcionem */
+}
+
+.time-item {
+    display: flex;
+    justify-content: center; /* Centraliza o texto horizontalmente */
+    align-items: center; /* Centraliza o texto verticalmente */
+    padding: 15px 25px; /* Padding interno */
+    min-height: 40px; /* Altura mínima para cada item */
+    font-size: 1.5em; /* Tamanho da fonte */
+    font-weight: bold;
+    color: white; /* Cor do texto */
+    text-transform: uppercase; /* Texto em maiúsculas */
+    letter-spacing: 0.05em; /* Espaçamento entre letras */
+    position: relative;
+    overflow: hidden; /* Para garantir o border-radius */
+    border-radius: 0; /* Começa sem arredondamento no item */
+    font-family: 'Bestime', sans-serif; /* Aplica a fonte aos itens de time */
+}
+
+/* Estilo para a "seta" ou forma lateral esquerda */
+.time-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -10px; /* Ajuste para mover a "ponta" para fora e sobrepor */
+    bottom: 0;
+    width: 25px; /* Largura da "ponta" */
+    background: inherit; /* Herda a cor de fundo do item pai */
+    transform: skewX(-20deg); /* Inclinação para criar a ponta */
+    transform-origin: top left;
+    z-index: 1; /* Garante que fique por baixo do texto */
+    border-top-left-radius: 8px; /* Arredonda o canto superior esquerdo */
+    border-bottom-left-radius: 8px; /* Arredonda o canto inferior esquerdo */
+}
+
+/* Estilo para a "seta" ou forma lateral direita */
+.time-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -10px; /* Ajuste para mover a "ponta" para fora e sobrepor */
+    bottom: 0;
+    width: 25px;
+    background: inherit; /* Herda a cor de fundo do item pai */
+    transform: skewX(20deg); /* Inclinação oposta para a ponta direita */
+    transform-origin: top right;
+    z-index: 1;
+    border-top-right-radius: 8px; /* Arredonda o canto superior direito */
+    border-bottom-right-radius: 8px; /* Arredonda o canto inferior direito */
+}
+
+.time-item span {
+    position: relative;
+    z-index: 2; /* Garante que o texto fique acima das "pontas" */
+}
+
+/* Cores específicas dos times */
+.time-item.fluminense {
+    background-color: var(--fluminense-bg);
+}
+
+.time-item.botafogo {
+    background-color: var(--botafogo-bg);
+}
+
+/* Linha divisória entre os itens, se quiser */
+.time-item:not(:last-child) {
+    border-bottom: 2px solid var(--item-divider-color); /* Linha fina entre os itens */
+}
+
+/* ====================================================================== */
+/* LISTAS DE IDS E JOGADORES (ADMIN) - Mantenha se ainda usa */
+/* ====================================================================== */
+.match-id-list,
+.player-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: #2D3748; /* Fundo da lista */
+    max-height: 350px; /* Altura máxima para rolagem */
+    overflow-y: auto;
+    font-family: 'Bestime', sans-serif; /* Aplica a fonte às listas */
+}
+
+.match-id-list li,
+.player-list li {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    font-weight: bold; /* Torna o texto da lista mais grosso */
+}
+
+.match-id-list li:last-child,
+.player-list li:last-child {
+    border-bottom: none;
+}
+
+.match-id-list li span,
+.player-list li span {
+    color: var(--text-light);
+    font-weight: bold;
+    word-break: break-all; /* Manter para IDs longos na admin */
+    flex-grow: 1; /* Permite que o span ocupe o espaço disponível */
+    margin-right: 15px;
+}
+
+.match-id-list li button,
+.player-list li button {
+    background-color: var(--error-color); /* Vermelho para remover */
+    padding: 8px 15px;
+    font-size: 0.85em;
+    margin: 0;
+    white-space: nowrap; /* Manter para botões para não quebrar "Remover" */
+    box-shadow: none; /* Remove sombra extra dos botões pequenos */
+    font-family: 'Bestime', sans-serif; /* Aplica a fonte aos botões de lista */
+}
+.match-id-list li button:hover,
+.player-list li button:hover {
+    background-color: #C53030;
+    transform: translateY(-1px);
+    box-shadow: none;
+}
+.empty-list-message {
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+    padding: 15px;
+    font-family: 'Bestime', sans-serif; /* Aplica a fonte à mensagem de lista vazia */
+}
+
+
+/* Estilos específicos para a página de login */
+.login-container {
+    max-width: 450px; /* Container de login um pouco menor */
+    margin-top: 50px;
+}
+
+/* Estilos específicos para a página de administração */
+.admin-container {
+    max-width: 900px;
+    margin-top: 50px;
+}
+#adminContent {
+    display: none;
+}
+#accessMessage {
+    font-size: 1.2em;
+    color: var(--error-color);
+    text-align: center;
+    margin-top: 50px;
+    font-family: 'Bestime', sans-serif; /* Aplica a fonte às mensagens de acesso */
+}
+#accessMessage button {
+    margin-top: 20px;
+}
+
+
+/* Links no rodapé */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    font-family: 'Bestime', sans-serif; /* Aplica a fonte aos links */
+    font-weight: bold; /* Torna o texto do link mais grosso */
+}
+
+a:hover {
+    color: #90CDF4; /* Tom mais claro ao hover */
+    text-decoration: underline;
+}
+
+
+/* ====================================================================== */
+/* RESPONSIVIDADE (Media Queries) */
+/* ====================================================================== */
+
+@media (max-width: 992px) { /* Laptops menores e tablets */
+    .container {
+        padding: 25px;
+    }
+    h1 {
+        font-size: 2em;
+    }
+    h2 {
+        font-size: 1.6em;
+    }
+    button {
+        padding: 12px 20px;
+        font-size: 1em;
+    }
+    th, td { /* Diminui ainda mais em telas menores */
+        font-size: 0.8em; 
+        padding: 8px 10px;
+    }
+}
+
+@media (max-width: 768px) { /* Tablets e celulares */
+    body {
+        padding: 15px;
+    }
+    .container {
+        padding: 20px;
+        margin: 10px auto;
+        border-radius: 10px;
+    }
+    h1 {
+        font-size: 1.8em;
+        margin-bottom: 20px;
+    }
+    h2 {
+        font-size: 1.4em;
+        margin-top: 25px;
+        padding-bottom: 8px;
+    }
+    p {
+        font-size: 0.95em;
+    }
+
+    /* Tabela responsiva (modo cartão) */
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    tr {
+        border: 1px solid var(--border-color);
+        margin-bottom: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    td {
+        border: none; /* Remove bordas internas das células */
+        border-bottom: 1px solid var(--border-color); /* Borda entre itens do "cartão" */
+        position: relative;
+        padding-left: 50%; /* Espaço para o data-label */
+        text-align: right; /* Alinha o valor à direita */
+        font-size: 0.8em; /* **DIMINUI O TAMANHO DA FONTE PARA MOBILE** */
+        white-space: normal; /* Permite a quebra de linha do *valor* dentro da célula */
+        word-break: break-word; /* Garante quebra para palavras longas */
+        overflow-wrap: break-word; /* Suporte para navegadores mais antigos */
+        font-weight: bold; /* Mantém o texto da célula mais grosso no mobile */
+    }
+    td:last-child {
+        border-bottom: none;
+    }
+
+    td::before { /* Adiciona o "label" antes do valor */
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: normal; /* Permite quebra de linha no label também */
+        word-break: break-word; /* Garante quebra para labels longos */
+        overflow-wrap: break-word; /* Suporte para navegadores mais antigos */
+        text-align: left;
+        font-weight: bold;
+        color: var(--accent-color); /* Cor do label */
+        box-sizing: border-box;
+    }
+
+    /* A regra td[data-label="Dia da semana"] e seu ::before podem ser removidas se quiser que quebrem em mobile */
+    /* Caso contrário, mantê-los garante nowrap para a célula do dia da semana em modo cartão */
+    td[data-label="Dia da semana"] {
+        white-space: nowrap;
+        word-break: normal;
+        overflow-wrap: normal;
+    }
+    td[data-label="Dia da semana"]::before {
+        white-space: nowrap;
+        word-break: normal;
+        overflow-wrap: normal;
+    }
+
+    /* Ajustes para inputs no mobile */
+    input[type="text"],
+    input[type="password"] {
+        width: calc(100% - 20px); /* Ajusta a largura para mobile */
+        padding: 10px;
+    }
+
+    .match-id-list li,
+    .player-list li {
+        flex-direction: column; /* Empilha os itens verticalmente */
+        align-items: flex-start; /* Alinha ao início */
+        padding: 10px 15px;
+    }
+    .match-id-list li span,
+    .player-list li span {
+        margin-bottom: 8px;
+        margin-right: 0;
+    }
+    .match-id-list li button,
+    .player-list li button {
+        align-self: flex-end; /* Alinha o botão remover à direita */
+    }
+
+    /* RESPONSIVIDADE PARA OS ITENS DO TIME NO MODO MOBILE */
+    .container-times {
+        max-width: 95%; /* Ajusta para telas menores */
+    }
+    .time-item {
+        font-size: 1.2em; /* Diminui a fonte em mobile */
+        padding: 12px 20px;
+        min-height: 35px; /* Altura mínima para cada item em mobile */
+    }
+    /* Ajustes para as "pontas" em telas menores, se necessário */
+    .time-item::before,
+    .time-item::after {
+        width: 15px; /* Pontas menores */
+        transform: skewX(-15deg); /* Menos inclinação */
+    }
+    .time-item::after {
+        transform: skewX(15deg); /* Menos inclinação */
+    }
+}
+
+@media (max-width: 480px) { /* Celulares menores */
+    body {
+        padding: 10px;
+    }
+    .container {
+        padding: 15px;
+        border-radius: 8px;
+    }
+    h1 {
+        font-size: 1.5em;
+    }
+    h2 {
+        font-size: 1.2em;
+    }
+    button {
+        padding: 10px 18px;
+        font-size: 0.9em;
+    }
+    .button-group, .action-buttons, .action-buttons-admin {
+        gap: 10px;
+    }
+    td {
+        padding: 8px; /* **DIMINUI O PADDING AINDA MAIS** */
+        font-size: 0.75em; /* **DIMINUI A FONTE AINDA MAIS** */
+    }
+    td::before {
+        font-size: 0.7em; /* **DIMINUI A FONTE DO LABEL NO MOBILE** */
+        width: 40%;
+    }
+    /* RESPONSIVIDADE PARA OS ITENS DO TIME EM CELULARES MUITO PEQUENOS */
+    .time-item {
+        font-size: 1em; /* Fonte ainda menor */
+        padding: 10px 15px;
+        min-height: 30px;
+    }
+    .time-item::before,
+    .time-item::after {
+        width: 10px; /* Pontas ainda menores */
+        transform: skewX(-10deg); /* Pouca inclinação */
+    }
+    .time-item::after {
+        transform: skewX(10deg); /* Pouca inclinação */
+    }
+}
