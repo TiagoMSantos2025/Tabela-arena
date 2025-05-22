@@ -3,62 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campeonato Mensal ColdFox - Registro de Partidas Dota 2</title>
+    <title>Detalhes das Partidas - Campeonato ColdFox</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-
     <div class="container">
-        <h1>🏆 Campeonato Mensal ColdFox - Registro de Partidas Dota 2 🏆</h1>
-        <h2>Maio 2025 - Detalhes dos Confrontos por Partida</h2>
+        <h1>🏆 Campeonato Mensal ColdFox - Detalhes das Partidas Dota 2 🏆</h1>
+        <p>Pontuações calculadas automaticamente com base em dados da OpenDota API. A tabela exibe detalhes de cada participação em partida.</p>
 
-        <p>Dados obtidos da OpenDota API. Atualize para ver os detalhes mais recentes das partidas configuradas.</p>
-        
-        <div class="action-buttons">
-            <button id="refreshButton">Atualizar Partidas</button>
-            <button id="shareWhatsappButton" class="whatsapp-button">Compartilhar no WhatsApp</button>
+        <div class="top-buttons">
+            <button id="updateTableButton">Atualizar Detalhes das Partidas</button>
+            <button id="shareWhatsappButton" class="share-button whatsapp-button">
+                <i class="fab fa-whatsapp"></i> Compartilhar no WhatsApp
+            </button>
+            <button id="shareDiscordButton" class="share-button discord-button">
+                <i class="fab fa-discord"></i> Compartilhar no Discord
+            </button>
         </div>
 
-        <table>
-            <caption>Histórico Detalhado de Partidas do Campeonato ColdFox</caption>
-            <thead>
-                <tr>
-                    <th>Colocação</th> 
-                    <th>Dia da Semana</th>
-                    <th>ID Partida</th>
-                    <th>Data</th>
-                    <th>Hora</th>
-                    <th>Tempo de Partida</th>
-                    <th>Vencedor</th>
-                    <th>Placar</th>
-                    <th>Jogador</th>
-                    <th>K</th>
-                    <th>D</th>
-                    <th>A</th>
-                    <th>Pontos</th>
-                    <th>Heróis</th>
-                </tr>
-            </thead>
-            <tbody id="matchDetailsTableBody">
-                <tr><td colspan="14">Carregando detalhes das partidas...</td></tr> 
-            </tbody>
-        </table>
+        <p id="saveScoresMessage" class="message"></p>
+        <p id="shareMessage" class="message"></p> <hr>
 
-        <p class="legenda">
-            <strong>K:</strong> Kills | <strong>D:</strong> Deaths | <strong>A:</strong> Assists | <strong>ID Partida:</strong> Identificador da Partida
-        </p>
-
-        <p style="text-align: center; margin-top: 30px;">
-            <a href="admin.html">Acessar Área de Administração</a>
-        </p>
+        <h2>Histórico Detalhado de Partidas</h2>
         
-        <p style="text-align: center; margin-top: 20px;">
-            <button id="logoutTableButton" class="logout-button">Sair da Tabela</button>
+        <div class="table-container">
+            <table id="matchDetailsTable">
+                <thead>
+                    <tr>
+                        <th>Dia da semana</th>
+                        <th>ID Partida</th>
+                        <th>Data</th>
+                        <th>Hora</th>
+                        <th>Tempo de partida</th>
+                        <th>Vencedor</th>
+                        <th>Placar</th>
+                        <th>Jogador</th>
+                        <th>K</th>
+                        <th>D</th>
+                        <th>A</th>
+                        <th>Pontos (Nesta Partida)</th>
+                        <th>Heróis</th>
+                    </tr>
+                </thead>
+                <tbody id="matchDetailsTableBody">
+                    </tbody>
+            </table>
+        </div>
+
+        <hr>
+
+        <h2>Pontuação Total dos Jogadores (Resumo)</h2>
+        <div class="summary-section">
+            <p id="totalScoresSummary">Carregando resumo dos pontos totais...</p>
+        </div>
+        <hr>
+
+        <p>
+            Acessar <a href="admin.html">Área de Administração</a>
         </p>
 
+        <button id="logoutTableButton" class="button-secondary">Sair da Tabela</button>
     </div>
-
     <script src="script.js"></script>
-
 </body>
 </html>

@@ -1,46 +1,79 @@
 // admin-script.js
-const ADMIN_PASSWORD = 'coldfoxgg25'; // <<< SENHA DE ADMINISTRAÇÃO
+const ADMIN_PASSWORD = 'coldfoxgg25'; // Senha para a área de administração
+const ADMIN_ACCESS_KEY = 'coldfoxAdminLoggedIn';
 const MATCH_IDS_STORAGE_KEY = 'coldfoxMatchIds';
-const PLAYERS_STORAGE_KEY = 'coldfoxPlayers'; 
-const IS_LOGGED_IN_STORAGE_KEY = 'coldfoxAdminLoggedIn';
+const PLAYER_NAMES_STORAGE_KEY = 'coldfoxPlayerNames';
 
-// Elementos HTML para autenticação e layout principal
-const accessMessageDiv = document.getElementById('accessMessage');
-const retryLoginButton = document.getElementById('retryLoginButton');
-const adminContentDiv = document.getElementById('adminContent');
-const logoutButton = document.getElementById('logoutButton');
-const goToTableButton = document.getElementById('goToTableButton'); 
-
-// Elementos para gerenciar IDs de Partidas
+// Elementos HTML da seção de partidas
 const matchIdInput = document.getElementById('matchIdInput');
 const addMatchIdButton = document.getElementById('addMatchIdButton');
-const saveMatchIdsButton = document.getElementById('saveMatchIdsButton'); 
-const matchIdListUl = document.getElementById('matchIdList');
-const matchIdMessageDiv = document.getElementById('matchIdMessage'); 
+const saveMatchIdsButton = document.getElementById('saveMatchIdsButton');
+const matchIdMessage = document.getElementById('matchIdMessage');
+const matchIdsList = document.getElementById('matchIdsList');
 
-// Elementos para gerenciar Jogadores
-const playerNameInput = document.getElementById('playerNameInput');
-const playerIdInput = document.getElementById('playerIdInput');
+// Elementos HTML da seção de jogadores
+const newPlayerNameInput = document.getElementById('newPlayerNameInput');
+const newPlayerIdInput = document.getElementById('newPlayerIdInput');
 const addPlayerButton = document.getElementById('addPlayerButton');
-const savePlayersButton = document.getElementById('savePlayersButton');
-const playerListUl = document.getElementById('playerList');
-const playerMessageDiv = document.getElementById('playerMessage');
+const savePlayerNamesButton = document.getElementById('savePlayerNamesButton');
+const playerMessage = document.getElementById('playerMessage');
+const playerList = document.getElementById('playerList');
 
-let matchIds = []; 
-let players = []; // Armazena objetos { id: '...', name: '...' }
+let matchIds = [];
+let playerNames = []; // [{ name: "Nome", id: 12345 }]
 
-// --- Funções de gerenciamento de IDs de Partidas ---
+// --- Funções de Acesso/Logout da Administração ---
+function checkAdminAccess() {
+    const hasAccess = sessionStorage.getItem(ADMIN_ACCESS_KEY) === 'true';
+    if (!hasAccess) {
+        let enteredPassword = prompt('Por favor, digite a senha de administrador para acessar esta página:');
+        if (enteredPassword === ADMIN_PASSWORD) {
+            sessionStorage.setItem(ADMIN_ACCESS_KEY, 'true');
+        } else {
+            alert('Senha incorreta! Redirecionando para a página de login.');
+            window.location.href = 'login.html';
+        }
+    }
+}
+
+function revokeAdminAccess() {
+    sessionStorage.removeItem(ADMIN_ACCESS_KEY);
+    window.location.href = 'login.html';
+}
+
+// --- Funções de Gerenciamento de IDs de Partida ---
 function loadMatchIds() {
-    const storedIds = localStorage.getItem(MATCH_IDS_STORAGE_KEY);
-    if (storedIds) {
-        matchIds = JSON.parse(storedIds);
+    const storedMatchIds = localStorage.getItem(MATCH_IDS_STORAGE_KEY);
+    if (storedMatchIds) {
+        matchIds = JSON.parse(storedMatchIds);
+    } else {
+        matchIds = [];
     }
     renderMatchIds();
 }
 
 function saveMatchIds() {
     localStorage.setItem(MATCH_IDS_STORAGE_KEY, JSON.stringify(matchIds));
-    showMessage('IDs de partidas salvos com sucesso!', 'success', matchIdMessageDiv);
+    matchIdMessage.className = 'message success';
+    matchIdMessage.textContent = 'IDs de partida salvos com sucesso!';
+    matchIdMessage.style.display = 'block';
+    setTimeout(() => { matchIdMessage.style.display = 'none'; }, 3000);
+}
+
+function renderMatchIds() {
+    matchIdsList.innerHTML = '';
+    if (matchIds.length === 0) {
+        matchIdsList.innerHTML = '<li>Nenhum ID de partida cadastrado.</li>';
+        return;
+    }
+    matchIds.forEach(id => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span>${id}</span>
+            <button class="button-danger" data-id="${id}">Remover</button>
+        `;
+        matchIdsList.appendChild(li);
+    });
 }
 
 function addMatchId() {
@@ -49,147 +82,126 @@ function addMatchId() {
         matchIds.push(id);
         matchIdInput.value = '';
         renderMatchIds();
-        showMessage('ID adicionado temporariamente. Clique em "Salvar IDs de Partida" para persistir.', 'success', matchIdMessageDiv);
-    } else if (matchIds.includes(id)) {
-        showMessage('Este ID já existe na lista!', 'error', matchIdMessageDiv);
+        saveMatchIds(); // Salva automaticamente ao adicionar
+    } else if (id && matchIds.includes(id)) {
+        matchIdMessage.className = 'message error';
+        matchIdMessage.textContent = 'Este ID de partida já foi adicionado.';
+        matchIdMessage.style.display = 'block';
     } else {
-        showMessage('Por favor, insira um ID de partida válido.', 'error', matchIdMessageDiv);
+        matchIdMessage.className = 'message error';
+        matchIdMessage.textContent = 'Por favor, insira um ID de partida válido.';
+        matchIdMessage.style.display = 'block';
     }
+    setTimeout(() => { matchIdMessage.style.display = 'none'; }, 3000);
 }
 
-function renderMatchIds() {
-    matchIdListUl.innerHTML = '';
-    if (matchIds.length === 0) {
-        matchIdListUl.innerHTML = '<li class="empty-list-message">Nenhum ID de partida cadastrado.</li>';
+function removeMatchId(idToRemove) {
+    matchIds = matchIds.filter(id => id !== idToRemove);
+    renderMatchIds();
+    saveMatchIds(); // Salva automaticamente ao remover
+}
+
+// --- Funções de Gerenciamento de Jogadores ---
+function loadPlayerNames() {
+    const storedPlayerNames = localStorage.getItem(PLAYER_NAMES_STORAGE_KEY);
+    if (storedPlayerNames) {
+        playerNames = JSON.parse(storedPlayerNames);
+    } else {
+        playerNames = [];
+    }
+    renderPlayerNames();
+}
+
+function savePlayerNames() {
+    localStorage.setItem(PLAYER_NAMES_STORAGE_KEY, JSON.stringify(playerNames));
+    playerMessage.className = 'message success';
+    playerMessage.textContent = 'Jogadores salvos com sucesso!';
+    playerMessage.style.display = 'block';
+    setTimeout(() => { playerMessage.style.display = 'none'; }, 3000);
+}
+
+function renderPlayerNames() {
+    playerList.innerHTML = '';
+    if (playerNames.length === 0) {
+        playerList.innerHTML = '<li>Nenhum jogador registrado.</li>';
         return;
     }
-    matchIds.forEach((id, index) => {
+    playerNames.forEach(player => {
         const li = document.createElement('li');
-        li.innerHTML = `<span>${id}</span> <button data-index="${index}" data-type="matchId">Remover</button>`;
-        matchIdListUl.appendChild(li);
+        li.innerHTML = `
+            <span>${player.name} (ID: ${player.id})</span>
+            <button class="button-danger" data-id="${player.id}">Remover</button>
+        `;
+        playerList.appendChild(li);
     });
-    // Adiciona evento de clique aos botões de remover
-    matchIdListUl.querySelectorAll('button').forEach(button => {
-        button.addEventListener('click', handleRemoveItem);
-    });
-}
-
-// --- Funções de gerenciamento de Jogadores ---
-function loadPlayers() {
-    const storedPlayers = localStorage.getItem(PLAYERS_STORAGE_KEY);
-    if (storedPlayers) {
-        players = JSON.parse(storedPlayers);
-    }
-    renderPlayers();
-}
-
-function savePlayers() {
-    localStorage.setItem(PLAYERS_STORAGE_KEY, JSON.stringify(players));
-    showMessage('Jogadores salvos com sucesso!', 'success', playerMessageDiv);
 }
 
 function addPlayer() {
-    const name = playerNameInput.value.trim();
-    const id = playerIdInput.value.trim();
+    const name = newPlayerNameInput.value.trim();
+    const id = parseInt(newPlayerIdInput.value.trim()); // Converte para número
 
-    if (name && id) {
+    if (name && !isNaN(id) && id > 0) {
         // Verifica se o ID já existe
-        const existingPlayer = players.find(p => p.id === id);
-        if (existingPlayer) {
-            // Se o ID existe, atualiza o nome
-            existingPlayer.name = name;
-            showMessage(`Nickname do jogador com ID ${id} atualizado para "${name}". Clique em "Salvar Jogadores" para persistir.`, 'success', playerMessageDiv);
-        } else {
-            // Se o ID não existe, adiciona novo jogador
-            players.push({ id: id, name: name });
-            showMessage('Jogador adicionado temporariamente. Clique em "Salvar Jogadores" para persistir.', 'success', playerMessageDiv);
+        if (playerNames.some(p => p.id === id)) {
+            playerMessage.className = 'message error';
+            playerMessage.textContent = 'Este ID de jogador já está registrado.';
+            playerMessage.style.display = 'block';
+            setTimeout(() => { playerMessage.style.display = 'none'; }, 3000);
+            return;
         }
-        
-        playerNameInput.value = '';
-        playerIdInput.value = '';
-        renderPlayers();
+        playerNames.push({ name: name, id: id });
+        newPlayerNameInput.value = '';
+        newPlayerIdInput.value = '';
+        renderPlayerNames();
+        savePlayerNames(); // Salva automaticamente ao adicionar
     } else {
-        showMessage('Por favor, insira o nickname e o ID do jogador.', 'error', playerMessageDiv);
+        playerMessage.className = 'message error';
+        playerMessage.textContent = 'Por favor, insira um nome e um ID de jogador válidos.';
+        playerMessage.style.display = 'block';
     }
+    setTimeout(() => { playerMessage.style.display = 'none'; }, 3000);
 }
 
-function renderPlayers() {
-    playerListUl.innerHTML = '';
-    if (players.length === 0) {
-        playerListUl.innerHTML = '<li class="empty-list-message">Nenhum jogador cadastrado.</li>';
-        return;
-    }
-    players.forEach((player, index) => {
-        const li = document.createElement('li');
-        li.innerHTML = `<span>${player.name} (ID: ${player.id})</span> <button data-index="${index}" data-type="player">Remover</button>`;
-        playerListUl.appendChild(li);
-    });
-    // Adiciona evento de clique aos botões de remover
-    playerListUl.querySelectorAll('button').forEach(button => {
-        button.addEventListener('click', handleRemoveItem);
-    });
+function removePlayer(idToRemove) {
+    playerNames = playerNames.filter(player => player.id !== parseInt(idToRemove)); // Converte para número antes de comparar
+    renderPlayerNames();
+    savePlayerNames(); // Salva automaticamente ao remover
 }
 
-// Função genérica para remover item de lista (matchId ou player)
-function handleRemoveItem(event) {
-    const indexToRemove = event.target.dataset.index;
-    const type = event.target.dataset.type;
 
-    if (type === 'matchId') {
-        matchIds.splice(indexToRemove, 1);
-        renderMatchIds();
-        showMessage('ID de partida removido temporariamente. Clique em "Salvar IDs de Partida" para persistir.', 'success', matchIdMessageDiv);
-    } else if (type === 'player') {
-        players.splice(indexToRemove, 1);
-        renderPlayers();
-        showMessage('Jogador removido temporariamente. Clique em "Salvar Jogadores" para persistir.', 'success', playerMessageDiv);
-    }
-}
-
-// --- Função de mensagem (adaptada para aceitar o elemento de mensagem) ---
-function showMessage(msg, type, msgElement) {
-    msgElement.textContent = msg;
-    msgElement.className = `message ${type}`; 
-    setTimeout(() => {
-        msgElement.textContent = '';
-        msgElement.className = 'message';
-    }, 5000); 
-}
-
-// --- Eventos ---
-logoutButton.addEventListener('click', () => {
-    if (confirm('Tem certeza que deseja sair da administração?')) {
-        localStorage.removeItem(IS_LOGGED_IN_STORAGE_KEY);
-        window.location.href = 'login.html'; 
-    }
-});
-
-goToTableButton.addEventListener('click', () => {
-    window.location.href = 'tabela.html';
-});
-
-// Eventos para IDs de Partida
-addMatchIdButton.addEventListener('click', addMatchId);
-saveMatchIdsButton.addEventListener('click', saveMatchIds);
-
-// Eventos para Jogadores
-addPlayerButton.addEventListener('click', addPlayer);
-savePlayersButton.addEventListener('click', savePlayers);
-
-// --- Inicialização ---
+// --- Event Listeners ---
 document.addEventListener('DOMContentLoaded', () => {
-    const isLoggedIn = localStorage.getItem(IS_LOGGED_IN_STORAGE_KEY);
+    checkAdminAccess();
+    loadMatchIds();
+    loadPlayerNames();
 
-    if (isLoggedIn === 'true') {
-        adminContentDiv.style.display = 'block';
-        accessMessageDiv.style.display = 'none';
-        loadMatchIds(); // Carrega IDs de partidas ao entrar na admin
-        loadPlayers();  // Carrega jogadores ao entrar na admin
-    } else {
-        adminContentDiv.style.display = 'none';
-        accessMessageDiv.style.display = 'block';
-        retryLoginButton.addEventListener('click', () => {
-            window.location.href = 'login.html'; // Redireciona para o login
-        });
-    }
+    document.getElementById('logoutAdminButton').addEventListener('click', revokeAdminAccess);
+
+    addMatchIdButton.addEventListener('click', addMatchId);
+    saveMatchIdsButton.addEventListener('click', saveMatchIds);
+    matchIdInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addMatchId();
+        }
+    });
+
+    matchIdsList.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON' && e.target.textContent === 'Remover') {
+            removeMatchId(e.target.dataset.id);
+        }
+    });
+
+    addPlayerButton.addEventListener('click', addPlayer);
+    savePlayerNamesButton.addEventListener('click', savePlayerNames);
+    newPlayerIdInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addPlayer();
+        }
+    });
+
+    playerList.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON' && e.target.textContent === 'Remover') {
+            removePlayer(e.target.dataset.id);
+        }
+    });
 });

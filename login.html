@@ -4,88 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Campeonato ColdFox</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Supondo que você tenha um arquivo styles.css -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container login-container">
-        <h1>🔒 Login - Campeonato ColdFox 🔒</h1>
-        <div class="input-group login-input-group">
-            <label for="username">Usuário:</label>
-            <input type="text" id="username" placeholder="Digite seu usuário" autofocus required>
+        <h1>🔑 Login - Campeonato Mensal ColdFox 🔑</h1>
+        
+        <div class="login-input-group">
+            <label for="usernameInput">Usuário:</label>
+            <input type="text" id="usernameInput" placeholder="Digite seu usuário" autocomplete="username">
         </div>
-        <div class="input-group login-input-group">
-            <label for="password">Senha:</label>
-            <input type="password" id="password" placeholder="Digite sua senha" required>
+
+        <div class="login-input-group">
+            <label for="passwordInput">Senha:</label>
+            <input type="password" id="passwordInput" placeholder="Digite a senha" autocomplete="current-password">
         </div>
-        <button id="loginButton">Entrar</button>
-        <div id="loginMessage" class="message"></div>
+
+        <button id="loginButton" class="login-button">Entrar na Tabela</button>
+        <p id="loginMessage" class="message"></p>
+
+        <hr>
+
+        <p>
+            Acesso exclusivo para administradores: <a href="admin.html">Gerenciar Partidas</a>
+        </p>
     </div>
-    <script>
-        // login.js - para a página de login
-        // REMOVE AS CREDENCIAIS DAQUI!!!
-        const ADMIN_LOGGED_IN_KEY = 'coldfoxAdminLoggedIn'; // Chave para indicar login do admin
-
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-        const loginButton = document.getElementById('loginButton');
-        const loginMessageDiv = document.getElementById('loginMessage');
-
-        // Função para exibir mensagens
-        function showMessage(msg, type) {
-            loginMessageDiv.textContent = msg;
-            loginMessageDiv.className = `message ${type}`; 
-            setTimeout(() => {
-                loginMessageDiv.textContent = '';
-                loginMessageDiv.className = 'message';
-            }, 3000); // Mensagem desaparece após 3 segundos
-        }
-
-        // Função para lidar com o login
-        function handleLogin() {
-            const enteredUsername = usernameInput.value.trim();
-            const enteredPassword = passwordInput.value.trim();
-
-            // Enviar dados para o servidor para autenticação
-            fetch('/login', {  // Assumindo que você tem um endpoint /login no seu servidor
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username: enteredUsername, password: enteredPassword })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Se o login for bem-sucedido, define a flag de admin logado no localStorage
-                    localStorage.setItem(ADMIN_LOGGED_IN_KEY, 'true');
-                    showMessage('Login bem-sucedido! Redirecionando...', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'admin.html'; // Redireciona para a página de administração
-                    }, 1000);
-                } else {
-                    showMessage('Usuário ou senha incorretos.', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Erro durante o login:', error);
-                showMessage('Erro ao tentar logar.', 'error');
-            });
-        }
-
-        // Event Listeners
-        loginButton.addEventListener('click', handleLogin);
-        passwordInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                handleLogin();
-            }
-        });
-
-        // Limpa o estado de login se o usuário chegou aqui sem um login anterior
-        // Ou, se o usuário já estiver logado (para o admin), redireciona direto
-        document.addEventListener('DOMContentLoaded', () => {
-            // Garante que o input de username tenha foco ao carregar a página
-            usernameInput.focus();
-        });
-    </script>
+    <script src="login-script.js"></script>
 </body>
 </html>

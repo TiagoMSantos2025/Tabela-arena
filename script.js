@@ -1,249 +1,503 @@
-// script.js (para a página da tabela principal - agora tabela.html)
-
+// script.js (para a página da tabela principal - tabela.html)
 const MATCH_IDS_STORAGE_KEY = 'coldfoxMatchIds';
-const PLAYERS_STORAGE_KEY = 'coldfoxPlayers'; // Chave para jogadores cadastrados
+const TABLE_ACCESS_KEY = 'coldfoxTableLoggedIn';
+const PLAYER_NAMES_STORAGE_KEY = 'coldfoxPlayerNames'; 
+const PLAYER_SCORES_STORAGE_KEY = 'coldfoxPlayerScores'; // A chave para armazenar pontos por partida
+const TOTAL_PLAYER_SCORES_KEY = 'coldfoxTotalPlayerScores'; // Chave para armazenar pontuações totais
 
-// Elementos HTML
-const matchDetailsTableBody = document.getElementById('matchDetailsTableBody');
-const refreshButton = document.getElementById('refreshButton');
+const PLAYER_DOTA_IDS = {
+    // Substitua pelos IDs reais dos jogadores. Use a OpenDota API para encontrá-los
+    // Exemplo: 'Nome do Jogador 1': 123456789,
+    //          'Nome do Jogador 2': 987654321
+};
+
+// Mapeamento de heróis: Inicialmente vazio, será preenchido dinamicamente
+let HERO_ID_TO_NAME = {};
+
+// Elementos HTML que eram da seção de gerenciamento manual (já removidos do HTML, referências são nulas)
+const matchPlayersSection = null; 
+const searchMatchIdInput = null;
+const searchMatchButton = null;
+const matchSearchMessage = null;
+const savePlayerScoresButton = null;
+const currentMatchIdDisplay = null;
+const matchPlayersMessage = null;
+const matchPlayersList = null;
+
+// Elementos HTML ainda úteis
+const saveScoresMessage = document.getElementById('saveScoresMessage'); // Para mensagens de atualização da tabela
+const updateTableButton = document.getElementById('updateTableButton'); 
+const totalScoresSummary = document.getElementById('totalScoresSummary'); // Novo elemento para o resumo
+
+// NOVAS REFERÊNCIAS PARA OS BOTÕES DE COMPARTILHAMENTO
 const shareWhatsappButton = document.getElementById('shareWhatsappButton');
-const logoutTableButton = document.getElementById('logoutTableButton');
+const shareDiscordButton = document.getElementById('shareDiscordButton');
+const shareMessage = document.getElementById('shareMessage'); // Para mensagens de feedback ao usuário
 
-let playerScores = {};
-let registeredPlayers = {}; // Objeto para armazenar jogadores cadastrados {id: 'nickname'}
-let globalPlayerRowIndex = 0; // Contador global para a colocação na tabela
 
-// --- Funções de Autenticação da Página da Tabela ---
-// O botão "Sair da Tabela" agora redireciona para a página de login.
-function logoutFromTable() {
-    // Usando uma modal simples em vez de confirm()
-    const confirmLogout = window.prompt('Tem certeza que deseja sair da tabela? Digite "sim" para confirmar.');
-    if (confirmLogout && confirmLogout.toLowerCase() === 'sim') {
+let playerNames = []; 
+let playerScores = {}; // Armazena as pontuações por match_id e account_id (pontos por partida individual)
+let totalPlayerScores = {}; // Objeto para armazenar a soma total de pontos por jogador
+
+// --- Funções de Acesso/Logout ---
+function checkTableAccess() {
+    const hasAccess = sessionStorage.getItem(TABLE_ACCESS_KEY) === 'true';
+    if (!hasAccess) {
         window.location.href = 'login.html';
     }
 }
 
-// --- Funções de formatação (mantidas as mesmas)
-function formatDuration(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes} min ${remainingSeconds > 0 ? remainingSeconds + ' seg' : ''}`;
+function revokeTableAccess() {
+    sessionStorage.removeItem(TABLE_ACCESS_KEY);
+    window.location.href = 'login.html';
 }
 
-function formatDate(timestamp) {
+// --- Funções Auxiliares de Formatação ---
+function formatMatchDuration(durationInSeconds) {
+    const minutes = Math.floor(durationInSeconds / 60);
+    const seconds = durationInSeconds % 60;
+    return `${minutes}m ${seconds}s`;
+}
+
+function formatMatchDateTime(timestamp) {
     const date = new Date(timestamp * 1000);
-    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    return date.toLocaleDateString('pt-BR', options);
+    const optionsDate = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    const optionsTime = { hour: '2-digit', minute: '2-digit', hour12: false };
+    const formattedDate = date.toLocaleDateString('pt-BR', optionsDate);
+    const formattedTime = date.toLocaleTimeString('pt-BR', optionsTime);
+    return { date: formattedDate, time: formattedTime, dayOfWeek: date.toLocaleDateString('pt-BR', { weekday: 'long' }) };
 }
 
-function formatTime(timestamp) {
-    const date = new Date(timestamp * 1000);
-    const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
-    return date.toLocaleTimeString('pt-BR', options);
+// --- Funções de Cálculo de Pontos ---
+function calculateKDA(kills, deaths, assists) {
+    const effectiveDeaths = Math.max(1, deaths); // Evita divisão por zero
+    return (kills + assists) / effectiveDeaths;
 }
 
-function getDayOfWeek(timestamp) {
-    const date = new Date(timestamp * 1000);
-    const options = { weekday: 'long' };
-    return date.toLocaleDateString('pt-BR', options);
+function scalePoints(kdaValue, minKDA, maxKDA, minPoints, maxPoints) {
+    if (maxKDA === minKDA) { // Se todos os KDAs são iguais, retorna a pontuação mínima
+        return minPoints; 
+    }
+    const normalizedKDA = (kdaValue - minKDA) / (maxKDA - minKDA);
+    const scaledPoints = normalizedKDA * (maxPoints - minPoints) + minPoints;
+    
+    // Garante que os pontos fiquem dentro do limite min/max e sejam inteiros
+    return Math.max(minPoints, Math.min(maxPoints, Math.round(scaledPoints)));
 }
 
-// Função para identificar o vencedor
-function getWinner(radiantWin) {
-    return radiantWin ? 'Radiant' : 'Dire';
-}
-
-// --- NOVA FUNÇÃO: CALCULAR PONTUAÇÃO K/D/A (5 a 30) ---
-function calculatePlayerScore(kills, deaths, assists) {
-    // Esta é uma fórmula adaptável. Você pode ajustar os pesos e os limites.
-    // Quanto maior K e A, melhor; quanto maior D, pior.
-
-    // Pontuação base (antes da normalização)
-    // Ajuste estes pesos conforme o que você considera mais importante e o range de valores que espera.
-    // Ex: Se Kills são muito mais importantes, aumente o peso de kills.
-    let scoreRaw = (kills * 1.5) + (assists * 0.75) - (deaths * 1.0);
-
-    // Ajuste esses valores para o que você espera de pontuação bruta mínima e máxima
-    // em uma partida típica para mapear corretamente para 5-30.
-    // Ex: uma partida ruim pode ter scoreRaw de -10, uma muito boa de 60.
-    const minExpectedRawScore = -10; // Ex: 0 Kills, 20 Deaths, 0 Assists -> 0 + 0 - 20 = -20. Vamos usar -10 como um "piso" razoável.
-    const maxExpectedRawScore = 60;  // Ex: 30 Kills, 0 Deaths, 20 Assists -> (30*1.5) + (20*0.75) - (0*1.0) = 45 + 15 - 0 = 60.
-
-    // Escalar para o intervalo [0, 1]
-    let normalizedScore = (scoreRaw - minExpectedRawScore) / (maxExpectedRawScore - minExpectedRawScore);
-
-    // Limitar para garantir que fique entre 0 e 1, caso a pontuação bruta saia do esperado
-    normalizedScore = Math.max(0, Math.min(1, normalizedScore));
-
-    // Escalar para o intervalo [5, 30]
-    const finalScore = 5 + (normalizedScore * (30 - 5)); // (30-5) é o tamanho do intervalo (25)
-
-    // Arredondar para o número inteiro mais próximo
-    return Math.round(finalScore);
-}
-
-
-// --- Funções de carregamento de dados ---
-async function loadPlayers() {
-    const storedPlayers = localStorage.getItem(PLAYERS_STORAGE_KEY);
-    if (storedPlayers) {
-        registeredPlayers = JSON.parse(storedPlayers);
+// --- Funções de Acesso a Dados Locais e API ---
+function loadPlayerNames() {
+    const storedPlayerNames = localStorage.getItem(PLAYER_NAMES_STORAGE_KEY);
+    if (storedPlayerNames) {
+        playerNames = JSON.parse(storedPlayerNames);
+    } else {
+        playerNames = [];
     }
 }
 
-async function loadAllMatchDetails() {
-    refreshButton.disabled = true;
-    shareWhatsappButton.disabled = true;
-    matchDetailsTableBody.innerHTML = `<tr><td colspan=\"14\" style=\"text-align:center; color:var(--text-muted);\">Carregando detalhes das partidas...</td></tr>`;
+function savePlayerNames() {
+    localStorage.setItem(PLAYER_NAMES_STORAGE_KEY, JSON.stringify(playerNames));
+}
 
-    globalPlayerRowIndex = 0; // Redefine o contador de colocação a cada carregamento
-
-    await loadPlayers(); // Carrega os jogadores cadastrados primeiro
-    const matchIds = JSON.parse(localStorage.getItem(MATCH_IDS_STORAGE_KEY) || '[]');
-
-    if (matchIds.length === 0) {
-        matchDetailsTableBody.innerHTML = `<tr><td colspan=\"14\" style=\"text-align:center; color:var(--text-muted);\">Nenhum ID de partida configurado. Por favor, adicione IDs na área de administração.</td></tr>`;
-        refreshButton.disabled = false;
-        shareWhatsappButton.disabled = false;
-        return;
+function loadPlayerScores() {
+    const storedPlayerScores = localStorage.getItem(PLAYER_SCORES_STORAGE_KEY);
+    if (storedPlayerScores) {
+        playerScores = JSON.parse(storedPlayerScores);
+    } else {
+        playerScores = {};
     }
+}
 
-    matchDetailsTableBody.innerHTML = ''; // Limpa a tabela antes de adicionar novos dados
+function loadTotalPlayerScores() {
+    const storedTotalScores = localStorage.getItem(TOTAL_PLAYER_SCORES_KEY);
+    if (storedTotalScores) {
+        totalPlayerScores = JSON.parse(storedTotalScores);
+    } else {
+        totalPlayerScores = {};
+    }
+}
 
+function saveTotalPlayerScores() {
+    localStorage.setItem(TOTAL_PLAYER_SCORES_KEY, JSON.stringify(totalPlayerScores));
+}
+
+// NOVO: Função para buscar a lista de heróis da OpenDota API
+async function fetchHeroList() {
+    const API_URL = 'https://api.opendota.com/api/heroes';
     try {
-        const fetchPromises = matchIds.map(id =>
-            fetch(`https://api.opendota.com/api/matches/${id}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Erro HTTP! Status: ${response.status} para o ID ${id}`);
-                    }
-                    return response.json();
-                })
-                .catch(error => {
-                    console.error(`Falha ao buscar partida ${id}:`, error);
-                    return null; // Retorna null para partidas que falharam
-                })
-        );
-
-        const allMatchDetails = await Promise.all(fetchPromises);
-        const validMatchDetails = allMatchDetails.filter(detail => detail !== null);
-
-        if (validMatchDetails.length === 0) {
-            matchDetailsTableBody.innerHTML = `<tr><td colspan=\"14\" style=\"color:var(--error-color); text-align:center;\">Nenhum detalhe de partida válido pôde ser carregado. Verifique os IDs ou sua conexão.</td></tr>`;
-            return;
-        }
-
-        // Ordenar as partidas pela data (timestamp) em ordem decrescente (mais recente primeiro)
-        validMatchDetails.sort((a, b) => b.start_time - a.start_time);
-
-        validMatchDetails.forEach(match => {
-            const radiantWin = match.radiant_win;
-            const winner = getWinner(radiantWin);
-            const radiantScore = match.radiant_score;
-            const direScore = match.dire_score;
-
-            // Para cada jogador na partida
-            match.players.forEach(player => {
-                const playerId = player.account_id;
-                const playerName = registeredPlayers[playerId] || `ID: ${playerId}`; // Usa o nickname cadastrado ou o ID
-
-                const kills = player.kills;
-                const deaths = player.deaths;
-                const assists = player.assists;
-
-                // --- CALCULA A NOVA PONTUAÇÃO K/D/A AQUI ---
-                const playerEvalScore = calculatePlayerScore(kills, deaths, assists);
-
-                const heroId = player.hero_id;
-                const heroName = "Carregando..."; // Será atualizado por outra função
-
-                // Incrementa o contador global de colocação
-                globalPlayerRowIndex++;
-                // Determina a classe de cor com base na paridade da colocação
-                const placementColorClass = (globalPlayerRowIndex % 2 !== 0) ? 'placement-white' : 'placement-yellow';
-
-                // Cria a linha da tabela
-                const row = `
-                    <tr>
-                        <td data-label="Colocação" class="${placementColorClass}">${globalPlayerRowIndex}</td> <td data-label="Dia da Semana">${getDayOfWeek(match.start_time)}</td>
-                        <td data-label="ID Partida">${match.match_id}</td>
-                        <td data-label="Data">${formatDate(match.start_time)}</td>
-                        <td data-label="Hora">${formatTime(match.start_time)}</td>
-                        <td data-label="Tempo de Partida">${formatDuration(match.duration)}</td>
-                        <td data-label="Vencedor">${winner}</td>
-                        <td data-label="Placar">${radiantScore} - ${direScore}</td>
-                        <td data-label="Jogador">${playerName}</td>
-                        <td data-label="K">${kills}</td>
-                        <td data-label="D">${deaths}</td>
-                        <td data-label="A">${assists}</td>
-                        <td data-label="Pontos">${playerEvalScore}</td>
-                        <td data-label="Heróis" class="hero-name" data-hero-id="${heroId}">${heroName}</td>
-                    </tr>
-                `;
-                matchDetailsTableBody.insertAdjacentHTML('beforeend', row);
-            });
-        });
-
-        // Carregar nomes dos heróis após todas as linhas serem adicionadas
-        loadHeroNames();
-
-    } catch (error) {
-        console.error("Erro geral ao carregar detalhes das partidas:", error);
-        matchDetailsTableBody.innerHTML = `<tr><td colspan=\"14\" style=\"color:var(--error-color); text-align:center;\">Erro ao carregar os detalhes das partidas: ${error.message}. Verifique o console para mais detalhes.</td></tr>`;
-    } finally {
-        refreshButton.disabled = false;
-        shareWhatsappButton.disabled = false;
-    }
-}
-
-// Função para buscar e exibir nomes de heróis (mantida como está)
-async function loadHeroNames() {
-    try {
-        const response = await fetch('https://api.opendota.com/api/heroes');
+        const response = await fetch(API_URL);
         if (!response.ok) {
-            throw new Error(`Erro HTTP! Status: ${response.status}`);
+            console.error(`Erro HTTP ao buscar lista de heróis! Status: ${response.status}`);
+            return {};
         }
         const heroes = await response.json();
         const heroMap = {};
         heroes.forEach(hero => {
             heroMap[hero.id] = hero.localized_name;
         });
-
-        document.querySelectorAll('.hero-name').forEach(element => {
-            const heroId = element.dataset.heroId;
-            element.textContent = heroMap[heroId] || 'Desconhecido';
-        });
-
+        return heroMap;
     } catch (error) {
-        console.error("Erro ao carregar nomes de heróis:", error);
-        document.querySelectorAll('.hero-name').forEach(element => {
-            if (element.textContent === 'Carregando...') {
-                element.textContent = 'Erro Herói';
-            }
-        });
+        console.error('Erro ao buscar lista de heróis:', error);
+        return {};
     }
 }
 
 
-// Função para compartilhar no WhatsApp
-function shareOnWhatsApp() {
-    const pageUrl = window.location.href;
-    const message = `Confira os detalhes do Campeonato Mensal ColdFox de Dota 2! Acesse a tabela de partidas aqui: ${pageUrl}`;
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+async function fetchMatchDetails(matchId) {
+    const API_URL = `https://api.opendota.com/api/matches/${matchId}`;
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+            if (response.status === 429) { // Too Many Requests (limite de requisições)
+                console.warn(`Rate limit hit for match ${matchId}. Consider adding fewer matches or waiting.`);
+            } else {
+                console.error(`Erro HTTP ao buscar partida ${matchId}! Status: ${response.status}`);
+            }
+            return null; // Retorna nulo em caso de erro para não quebrar o processo
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(`Erro ao buscar partida ${matchId}:`, error);
+        return null;
+    }
+}
+
+// --- Função Principal: Carrega e Processa Todas as Partidas Automaticamente ---
+async function loadAllMatchDetails() {
+    // NOVO: Garante que a lista de heróis seja carregada antes de processar as partidas
+    if (Object.keys(HERO_ID_TO_NAME).length === 0) { // Carrega apenas se estiver vazio
+        HERO_ID_TO_NAME = await fetchHeroList();
+        if (Object.keys(HERO_ID_TO_NAME).length === 0) {
+            console.warn('Não foi possível carregar a lista de heróis. Os heróis podem aparecer como "ID: X".');
+        }
+    }
+
+
+    const matchIds = JSON.parse(localStorage.getItem(MATCH_IDS_STORAGE_KEY) || '[]');
+    loadPlayerNames(); 
+    loadPlayerScores(); // Pontos por partida (para referência/cálculo inicial)
+
+    const tableBody = document.getElementById('matchDetailsTableBody');
+    tableBody.innerHTML = '<tr><td colspan="13">Carregando detalhes das partidas...</td></tr>'; // Ajuste o colspan para o total de colunas
+
+    if (matchIds.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="13">Nenhum ID de partida para exibir. Por favor, adicione-os na <a href="admin.html">Área de Administração</a>.</td></tr>'; // Ajuste o colspan
+        // Também limpa o resumo de pontos totais se não houver partidas
+        if (totalScoresSummary) totalScoresSummary.textContent = 'Nenhum dado de partida para calcular pontos totais.';
+        return;
+    }
+
+    const allMatchDetailsData = []; // Para armazenar os dados de cada jogador em cada partida para renderização
+    const newPlayerScoresPerMatch = { ...playerScores }; // Copia para atualizar e guardar pontos por partida
+    const recalculatedTotalScores = {}; // Objeto para acumular os pontos totais para esta execução
+
+    for (const matchId of matchIds) {
+        const data = await fetchMatchDetails(matchId);
+        if (data) {
+            const { date: formattedDate, time: formattedTime, dayOfWeek } = formatMatchDateTime(data.start_time);
+            const duration = formatMatchDuration(data.duration);
+            const radiantWin = data.radiant_win;
+            const radiantScore = data.radiant_score;
+            const direScore = data.dire_score;
+
+            // Calcula KDA min/max para escalonamento de pontos nesta partida
+            const kdaValues = data.players.map(p => calculateKDA(p.kills, p.deaths, p.assists));
+            const minKDA = kdaValues.length > 0 ? Math.min(...kdaValues) : 0;
+            const maxKDA = kdaValues.length > 0 ? Math.max(...kdaValues) : 0;
+
+            data.players.forEach(player => {
+                const accountId = player.account_id;
+                let playerNameDisplay = `ID: ${accountId}`; // Fallback para jogador
+
+                // Lógica de nome de jogador: prioriza nomes conhecidos ou da API
+                const localPlayer = playerNames.find(p => p.id === accountId);
+                if (localPlayer) {
+                    playerNameDisplay = localPlayer.name;
+                } else if (player.personaname) {
+                    playerNameDisplay = player.personaname;
+                    // Adiciona/atualiza o nome do jogador na lista local se não existir
+                    const existingPlayerIndex = playerNames.findIndex(p => p.id === accountId);
+                    if (existingPlayerIndex === -1) {
+                        playerNames.push({ name: player.personaname, id: accountId });
+                    } else if (playerNames[existingPlayerIndex].name !== player.personaname) {
+                        playerNames[existingPlayerIndex].name = player.personaname; 
+                    }
+                } else {
+                    // Tenta encontrar o nome do jogador no PLAYER_DOTA_IDS como último recurso
+                    for (const nameKey in PLAYER_DOTA_IDS) {
+                        if (PLAYER_DOTA_IDS[nameKey] === accountId) {
+                            playerNameDisplay = nameKey;
+                            break;
+                        }
+                    }
+                }
+                
+                const playerKDA = calculateKDA(player.kills, player.deaths, player.assists);
+                const autoCalculatedPoints = scalePoints(playerKDA, minKDA, maxKDA, 5, 30);
+                
+                // Armazena pontos por partida individualmente
+                if (!newPlayerScoresPerMatch[matchId]) {
+                    newPlayerScoresPerMatch[matchId] = {};
+                }
+                const pointsForThisMatch = typeof newPlayerScoresPerMatch[matchId][accountId] !== 'undefined'
+                                        ? newPlayerScoresPerMatch[matchId][accountId]
+                                        : autoCalculatedPoints;
+                newPlayerScoresPerMatch[matchId][accountId] = pointsForThisMatch;
+
+
+                // Acumula a pontuação total para cada jogador
+                if (!recalculatedTotalScores[accountId]) {
+                    recalculatedTotalScores[accountId] = 0;
+                }
+                recalculatedTotalScores[accountId] += pointsForThisMatch;
+
+                // Determina o vencedor/perdedor da partida para o jogador
+                const playerWon = (player.isRadiant && radiantWin) || (!player.isRadiant && !radiantWin);
+                const matchResult = playerWon ? 'VENCEU' : 'PERDEU';
+
+
+                // NOVO: Lógica para nome do herói
+                const heroName = HERO_ID_TO_NAME[player.hero_id] || `ID: ${player.hero_id}`;
+
+                // Adiciona os dados do jogador/partida para a lista de renderização
+                allMatchDetailsData.push({
+                    dayOfWeek: dayOfWeek,
+                    matchId: data.match_id,
+                    date: formattedDate,
+                    time: formattedTime,
+                    duration: duration,
+                    winner: matchResult, // Usa 'VENCEU' ou 'PERDEU'
+                    score: `${radiantScore} - ${direScore}`,
+                    playerName: playerNameDisplay,
+                    kills: player.kills,
+                    deaths: player.deaths,
+                    assists: player.assists,
+                    points: pointsForThisMatch, // Pontos feitos NESTA PARTIDA
+                    hero: heroName // Usa o nome do herói obtido dinamicamente
+                });
+            });
+        }
+    }
+
+    // Salva as pontuações por partida individual e nomes dos jogadores
+    playerScores = newPlayerScoresPerMatch; 
+    localStorage.setItem(PLAYER_SCORES_STORAGE_KEY, JSON.stringify(playerScores));
+    savePlayerNames(); 
+
+    // Salva as pontuações totais calculadas
+    totalPlayerScores = recalculatedTotalScores; 
+    saveTotalPlayerScores();
+
+
+    // --- Renderização da Tabela de DETALHES DAS PARTIDAS ---
+    // Ordena os detalhes da partida por data (partidas mais recentes primeiro)
+    allMatchDetailsData.sort((a, b) => {
+        // Converte as strings de data "DD/MM/YYYY" para objetos Date para comparação
+        const [dayA, monthA, yearA] = a.date.split('/').map(Number);
+        const [dayB, monthB, yearB] = b.date.split('/').map(Number);
+        const dateA = new Date(yearA, monthA - 1, dayA);
+        const dateB = new Date(yearB, monthB - 1, dayB);
+        
+        // Se as datas são iguais, ordena pelo ID da partida (garante ordem consistente)
+        if (dateA.getTime() === dateB.getTime()) {
+            return b.matchId - a.matchId; // ID de partida maior primeiro
+        }
+        return dateB.getTime() - dateA.getTime(); // Mais recente primeiro
+    });
+
+
+    tableBody.innerHTML = ''; // Limpa o corpo da tabela antes de preencher
+
+    if (allMatchDetailsData.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="13">Nenhum detalhe de partida para exibir.</td></tr>';
+        return;
+    }
+
+    allMatchDetailsData.forEach((matchPlayerData, index) => {
+        const row = tableBody.insertRow();
+        
+        // Aplica as classes de cores alternadas
+        if ((index + 1) % 2 !== 0) { // Posição ímpar (1º, 3º, 5º...)
+            row.classList.add('ranking-odd');
+        } else { // Posição par (2º, 4º, 6º...)
+            row.classList.add('ranking-even');
+        }
+        
+        row.insertCell(0).setAttribute('data-label', 'Dia da semana'); row.cells[0].textContent = matchPlayerData.dayOfWeek;
+        row.insertCell(1).setAttribute('data-label', 'ID Partida'); row.cells[1].textContent = matchPlayerData.matchId;
+        row.insertCell(2).setAttribute('data-label', 'Data'); row.cells[2].textContent = matchPlayerData.date;
+        row.insertCell(3).setAttribute('data-label', 'Hora'); row.cells[3].textContent = matchPlayerData.time;
+        row.insertCell(4).setAttribute('data-label', 'Tempo de partida'); row.cells[4].textContent = matchPlayerData.duration;
+        row.insertCell(5).setAttribute('data-label', 'Vencedor'); row.cells[5].textContent = matchPlayerData.winner;
+        row.insertCell(6).setAttribute('data-label', 'Placar'); row.cells[6].textContent = matchPlayerData.score;
+        row.insertCell(7).setAttribute('data-label', 'Jogador'); row.cells[7].textContent = matchPlayerData.playerName;
+        row.insertCell(8).setAttribute('data-label', 'K'); row.cells[8].textContent = matchPlayerData.kills;
+        row.insertCell(9).setAttribute('data-label', 'D'); row.cells[9].textContent = matchPlayerData.deaths;
+        row.insertCell(10).setAttribute('data-label', 'A'); row.cells[10].textContent = matchPlayerData.assists;
+        row.insertCell(11).setAttribute('data-label', 'Pontos (Nesta Partida)'); row.cells[11].textContent = matchPlayerData.points;
+        row.insertCell(12).setAttribute('data-label', 'Heróis'); row.cells[12].textContent = matchPlayerData.hero;
+    });
+
+    // --- Renderização do Resumo de Pontos Totais ---
+    if (totalScoresSummary) {
+        let summaryHtml = '<h3>Top Jogadores por Pontos Totais:</h3><ul>';
+        // Converte o objeto totalPlayerScores em um array para ordenar
+        const sortedTotalPlayers = Object.keys(totalPlayerScores).map(accountId => {
+            const playerNameEntry = playerNames.find(p => p.id === parseInt(accountId));
+            let playerNameDisplay = `ID: ${accountId}`;
+            if (playerNameEntry) {
+                playerNameDisplay = playerNameEntry.name;
+            } else {
+                for (const nameKey in PLAYER_DOTA_IDS) {
+                    if (PLAYER_DOTA_IDS[nameKey] === parseInt(accountId)) {
+                        playerNameDisplay = nameKey;
+                        break;
+                    }
+                }
+            }
+            return { name: playerNameDisplay, totalPoints: totalPlayerScores[accountId] };
+        }).sort((a, b) => b.totalPoints - a.totalPoints); // Ordena do maior para o menor
+
+        if (sortedTotalPlayers.length > 0) {
+            sortedTotalPlayers.forEach((player, index) => {
+                // Aplica as mesmas cores de linha no resumo, se desejar
+                const className = ((index + 1) % 2 !== 0) ? 'ranking-odd' : 'ranking-even';
+                summaryHtml += `<li class="${className}">${index + 1}º - ${player.name}: ${player.totalPoints} pontos</li>`;
+            });
+        } else {
+            summaryHtml += '<li>Nenhum jogador com pontuação total encontrada.</li>';
+        }
+        summaryHtml += '</ul>';
+        totalScoresSummary.innerHTML = summaryHtml;
+    }
+}
+
+// --- Funções de Compartilhamento ---
+
+// Função para gerar o texto de compartilhamento do resumo do ranking
+function generateRankingSummaryText() {
+    let text = "🏆 Ranking do Campeonato ColdFox 🏆\n\n";
+    
+    // Obter o resumo dos pontos totais (já está em totalPlayerScores)
+    // Converte o objeto totalPlayerScores em um array para ordenar
+    const sortedTotalPlayers = Object.keys(totalPlayerScores).map(accountId => {
+        const playerNameEntry = playerNames.find(p => p.id === parseInt(accountId));
+        let playerNameDisplay = `ID: ${accountId}`;
+        if (playerNameEntry) {
+            playerNameDisplay = playerNameEntry.name;
+        } else {
+            for (const nameKey in PLAYER_DOTA_IDS) {
+                if (PLAYER_DOTA_IDS[nameKey] === parseInt(accountId)) {
+                    playerNameDisplay = nameKey;
+                    break;
+                }
+            }
+        }
+        return { name: playerNameDisplay, totalPoints: totalPlayerScores[accountId] };
+    }).sort((a, b) => b.totalPoints - a.totalPoints); // Ordena do maior para o menor
+
+    if (sortedTotalPlayers.length > 0) {
+        sortedTotalPlayers.slice(0, 5).forEach((player, index) => { // Compartilha os top 5, por exemplo
+            text += `${index + 1}º - ${player.name}: ${player.totalPoints} pontos\n`;
+        });
+        if (sortedTotalPlayers.length > 5) {
+            text += `\n...e muito mais!\n`;
+        }
+    } else {
+        text += "Nenhum dado de ranking disponível ainda.\n";
+    }
+
+    text += `\nConfira o ranking completo em: ${window.location.href}`;
+    return encodeURIComponent(text); // Codifica para URL
+}
+
+// Função de Compartilhamento no WhatsApp
+function shareOnWhatsapp() {
+    const shareText = generateRankingSummaryText();
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}`;
     window.open(whatsappUrl, '_blank');
 }
 
+// Função de Compartilhamento no Discord (copia o texto para a área de transferência)
+function shareOnDiscord() {
+    const shareText = decodeURIComponent(generateRankingSummaryText()); // Decodifica para copiar o texto original
+    
+    // Usa a API Clipboard para copiar texto
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareText)
+            .then(() => {
+                shareMessage.className = 'message success';
+                shareMessage.textContent = 'Ranking copiado para a área de transferência! Cole no Discord.';
+                shareMessage.style.display = 'block';
+                setTimeout(() => { shareMessage.style.display = 'none'; }, 5000);
+            })
+            .catch(err => {
+                console.error('Erro ao copiar texto: ', err);
+                shareMessage.className = 'message error';
+                shareMessage.textContent = 'Erro ao copiar ranking. Por favor, copie manualmente.';
+                shareMessage.style.display = 'block';
+                setTimeout(() => { shareMessage.style.display = 'none'; }, 5000);
+            });
+    } else {
+        // Fallback para navegadores sem a API Clipboard (menos comum hoje em dia)
+        const textArea = document.createElement("textarea");
+        textArea.value = shareText;
+        textArea.style.position = "fixed";  // Evita rolagem para o fundo
+        textArea.style.left = "-9999px"; // Fora da tela
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            shareMessage.className = 'message success';
+            shareMessage.textContent = 'Ranking copiado para a área de transferência! Cole no Discord.';
+            shareMessage.style.display = 'block';
+            setTimeout(() => { shareMessage.style.display = 'none'; }, 5000);
+        } catch (err) {
+            console.error('Fallback: Erro ao copiar texto: ', err);
+            shareMessage.className = 'message error';
+            shareMessage.textContent = 'Erro ao copiar ranking. Por favor, copie manualmente.';
+            shareMessage.style.display = 'block';
+            setTimeout(() => { shareMessage.style.display = 'none'; }, 5000);
+        }
+        document.body.removeChild(textArea);
+    }
+}
 
-// --- Inicialização ---
-document.addEventListener('DOMContentLoaded', () => {
-    loadAllMatchDetails();
+
+// --- Event Listeners ---
+document.addEventListener('DOMContentLoaded', async () => { // Adicionado 'async' aqui
+    checkTableAccess();
+    await loadAllMatchDetails(); // Aguarda o carregamento completo dos detalhes, incluindo heróis
+
+    const logoutTableButton = document.getElementById('logoutTableButton');
+    if (logoutTableButton) {
+        logoutTableButton.addEventListener('click', revokeTableAccess);
+    }
+    
+    // O botão de "Atualizar Tabela" ainda é útil para forçar um recarregamento e re-cálculo
+    if (updateTableButton) {
+        updateTableButton.addEventListener('click', async () => { // Adicionado 'async' aqui
+            saveScoresMessage.className = 'message info';
+            saveScoresMessage.textContent = 'Atualizando detalhes das partidas... Por favor, aguarde.';
+            saveScoresMessage.style.display = 'block';
+            
+            // Limpa o cache de heróis para garantir a atualização
+            HERO_ID_TO_NAME = {}; 
+            await loadAllMatchDetails();
+
+            saveScoresMessage.className = 'message success';
+            saveScoresMessage.textContent = 'Detalhes das partidas e resumo de pontos totais atualizados!';
+            saveScoresMessage.style.display = 'block';
+            setTimeout(() => { saveScoresMessage.style.display = 'none'; }, 3000);
+        });
+    }
+
+    // NOVOS EVENT LISTENERS PARA OS BOTÕES DE COMPARTILHAMENTO
+    if (shareWhatsappButton) {
+        shareWhatsappButton.addEventListener('click', shareOnWhatsapp);
+    }
+    if (shareDiscordButton) {
+        shareDiscordButton.addEventListener('click', shareOnDiscord);
+    }
 });
-
-// Adiciona um evento de clique ao botão de atualização
-refreshButton.addEventListener('click', loadAllMatchDetails);
-
-// Adiciona um evento de clique ao botão de compartilhamento
-shareWhatsappButton.addEventListener('click', shareOnWhatsApp);
-
-// Adiciona evento de clique ao botão de "Sair da Tabela"
-logoutTableButton.addEventListener('click', logoutFromTable);

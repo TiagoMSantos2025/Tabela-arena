@@ -8,57 +8,43 @@
 </head>
 <body>
     <div class="container admin-container">
-        <div id="accessMessage">
-            <p>Acesso negado. Por favor, forneça a senha correta.</p>
-            <button id="retryLoginButton">Tentar Novamente</button>
+        <h1>🛠️ Administração do Campeonato ColdFox 🛠️</h1>
+        <p>Gerenciamento de IDs de Partidas e Jogadores</p>
+
+        <button id="logoutAdminButton" class="button-secondary">Sair (Logout)</button>
+        <a href="tabela.html" class="button">Ver Tabela de Ranking</a>
+
+        <hr>
+
+        <h2>Gerenciar IDs de Partida</h2>
+        <div class="admin-input-group">
+            <label for="matchIdInput">Adicionar Novo ID de Partida de Dota 2:</label>
+            <input type="text" id="matchIdInput" placeholder="Ex: 1234567890">
+            <button id="addMatchIdButton">Adicionar ID</button>
+            <button id="saveMatchIdsButton">Salvar Alterações</button>
         </div>
-        <div id="adminContent" style="display: none;">
-            <h1>🛠️ Administração - Campeonato ColdFox 🛠️</h1>
-            
-            <div class="action-buttons-admin">
-                <button id="logoutButton" class="logout-button">Sair (Logout)</button>
-                <button id="goToTableButton" class="go-to-table-button">Ver Tabela de Partidas</button>
-            </div>
+        <p id="matchIdMessage" class="message"></p>
+        <h3>IDs de Partidas Cadastrados:</h3>
+        <ul id="matchIdsList">
+            </ul>
 
-            <hr>
+        <hr>
 
-            <h2>Gerenciar IDs das Partidas</h2>
-            <p>Adicione os IDs das partidas do OpenDota para que apareçam na tabela principal.</p>
-            <div class="input-group">
-                <label for="matchIdInput">Adicionar Novo ID de Partida:</label>
-                <input type="text" id="matchIdInput" placeholder="Ex: 1234567890">
-            </div>
-            <div class="button-group">
-                <button id="addMatchIdButton">Adicionar ID de Partida</button>
-                <button id="saveMatchIdsButton">Salvar IDs de Partida</button>
-            </div>
-            <h3>IDs de Partidas Atuais:</h3>
-            <ul id="matchIdList" class="match-id-list">
-                </ul>
-            <div id="matchIdMessage" class="message"></div>
-
-            <hr>
-
-            <h2>Gerenciar Jogadores</h2>
-            <p>Adicione ou edite os nicknames e IDs dos jogadores para que apareçam corretamente na tabela.</p>
-            <div class="input-group">
-                <label for="playerNameInput">Nickname do Jogador:</label>
-                <input type="text" id="playerNameInput" placeholder="Ex: ColdFox_Player">
-            </div>
-            <div class="input-group">
-                <label for="playerIdInput">ID da Conta (Steam/Dota 2):</label>
-                <input type="text" id="playerIdInput" placeholder="Ex: 123456789 (número de 32 bits)">
-            </div>
-            <div class="button-group">
-                <button id="addPlayerButton">Adicionar Jogador</button>
-                <button id="savePlayersButton">Salvar Jogadores</button>
-            </div>
-            <h3>Jogadores Cadastrados:</h3>
-            <ul id="playerList" class="player-list">
-                </ul>
-            <div id="playerMessage" class="message"></div>
-
+        <h2>Gerenciar Jogadores (Opcional)</h2>
+        <p>Jogadores são adicionados automaticamente ao processar partidas. Use esta seção para renomear ou remover manualmente.</p>
+        <div class="admin-input-group">
+            <label for="newPlayerNameInput">Adicionar Jogador Manualmente (Nome):</label>
+            <input type="text" id="newPlayerNameInput" placeholder="Nome do Jogador">
+            <label for="newPlayerIdInput">ID da Conta (OpenDota):</label>
+            <input type="number" id="newPlayerIdInput" placeholder="Ex: 123456789">
+            <button id="addPlayerButton">Adicionar Jogador</button>
+            <button id="savePlayerNamesButton">Salvar Alterações</button>
         </div>
+        <p id="playerMessage" class="message"></p>
+        <h3>Jogadores Registrados:</h3>
+        <ul id="playerList">
+            </ul>
+
     </div>
     <script src="admin-script.js"></script>
 </body>
