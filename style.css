@@ -113,11 +113,21 @@ button:hover {
     color: #008000;
 }
 
-hr {
+/* hr {
     border: 0;
     height: 1px;
     background: #4a4a6a;
     margin: 30px 0;
+} */ /* <<< Original, mas o de baixo é mais flexível */
+
+hr {
+    border: none;
+    border-top: 1px dashed #4a4a6a; /* Linha tracejada suave */
+    color: #4a4a6a; /* Cor para navegadores antigos */
+    background-color: transparent; /* Garante que a cor de fundo não interfira */
+    height: 1px;
+    margin: 30px 0;
+    width: 100%; /* Garante que o HR ocupe a largura total */
 }
 
 a {
@@ -133,12 +143,13 @@ a:hover {
 
 /* Tabela de Ranking */
 .table-container {
-    overflow-x: hidden; /* Oculta a barra de rolagem horizontal */
+    overflow-x: auto; /* Altera de hidden para auto, para permitir rolagem em telas pequenas */
     margin-top: 20px;
+    max-width: 100%; /* Garante que o contêiner não ultrapasse o pai */
 }
 
 table {
-    width: 100%; /* A tabela tentará ocupar 100% do seu contêiner pai (.table-container) */
+    width: 100%; 
     border-collapse: collapse;
     margin-top: 20px;
     background-color: #3a3a5a;
@@ -148,18 +159,18 @@ table {
 
 th, td {
     border: 1px solid #4a4a6a;
-    padding: 8px 10px; /* Reduzindo o padding */
+    padding: 8px 10px; 
     text-align: left;
-    white-space: nowrap; /* Mantém o texto na mesma linha */
-    overflow: hidden; /* Oculta conteúdo que transborda */
-    text-overflow: ellipsis; /* Adiciona "..." se o texto for cortado */
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
 }
 
 th {
     background-color: #4a4a6a;
     font-weight: bold;
     color: #e6e6fa;
-    position: sticky; /* Fixa cabeçalhos */
+    position: sticky; 
     top: 0;
     z-index: 1;
 }
@@ -275,26 +286,26 @@ th {
 
 /* Estilos para botões de compartilhamento */
 .share-button {
-    padding: 10px 18px; /* Ajuste o padding para botões menores, se preferir */
-    font-size: 1em; /* Ajuste o tamanho da fonte */
+    padding: 10px 18px; 
+    font-size: 1em; 
     margin: 5px;
-    display: inline-flex; /* Para alinhar o ícone e o texto */
+    display: inline-flex; 
     align-items: center;
-    gap: 8px; /* Espaço entre o ícone e o texto */
+    gap: 8px; 
 }
 
 .whatsapp-button {
-    background-color: #25D366; /* Cor verde do WhatsApp */
+    background-color: #25D366; 
 }
 
 .whatsapp-button:hover {
-    background-color: #1DA851; /* Tom mais escuro no hover */
+    background-color: #1DA851; 
 }
 
 .discord-button {
-    background-color: #5865F2; /* Cor roxa do Discord */
+    background-color: #5865F2; 
 }
 
 .discord-button:hover {
-    background-color: #4B56D8; /* Tom mais escuro no hover */
+    background-color: #4B56D8; 
 }

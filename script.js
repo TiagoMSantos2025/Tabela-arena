@@ -14,16 +14,6 @@ const PLAYER_DOTA_IDS = {
 // Mapeamento de heróis: Inicialmente vazio, será preenchido dinamicamente
 let HERO_ID_TO_NAME = {};
 
-// Elementos HTML que eram da seção de gerenciamento manual (já removidos do HTML, referências são nulas)
-const matchPlayersSection = null; 
-const searchMatchIdInput = null;
-const searchMatchButton = null;
-const matchSearchMessage = null;
-const savePlayerScoresButton = null;
-const currentMatchIdDisplay = null;
-const matchPlayersMessage = null;
-const matchPlayersList = null;
-
 // Elementos HTML ainda úteis
 const saveScoresMessage = document.getElementById('saveScoresMessage'); // Para mensagens de atualização da tabela
 const updateTableButton = document.getElementById('updateTableButton'); 
