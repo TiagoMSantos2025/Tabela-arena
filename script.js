@@ -11,11 +11,14 @@ const logoutTableButton = document.getElementById('logoutTableButton');
 
 let playerScores = {};
 let registeredPlayers = {}; // Objeto para armazenar jogadores cadastrados {id: 'nickname'}
+let globalPlayerRowIndex = 0; // Contador global para a colocação na tabela
 
 // --- Funções de Autenticação da Página da Tabela ---
 // O botão "Sair da Tabela" agora redireciona para a página de login.
 function logoutFromTable() {
-    if (confirm('Tem certeza que deseja sair da tabela?')) {
+    // Usando uma modal simples em vez de confirm()
+    const confirmLogout = window.prompt('Tem certeza que deseja sair da tabela? Digite "sim" para confirmar.');
+    if (confirmLogout && confirmLogout.toLowerCase() === 'sim') {
         window.location.href = 'login.html';
     }
 }
@@ -93,6 +96,8 @@ async function loadAllMatchDetails() {
     shareWhatsappButton.disabled = true;
     matchDetailsTableBody.innerHTML = `<tr><td colspan=\"14\" style=\"text-align:center; color:var(--text-muted);\">Carregando detalhes das partidas...</td></tr>`;
 
+    globalPlayerRowIndex = 0; // Redefine o contador de colocação a cada carregamento
+
     await loadPlayers(); // Carrega os jogadores cadastrados primeiro
     const matchIds = JSON.parse(localStorage.getItem(MATCH_IDS_STORAGE_KEY) || '[]');
 
@@ -152,11 +157,15 @@ async function loadAllMatchDetails() {
                 const heroId = player.hero_id;
                 const heroName = "Carregando..."; // Será atualizado por outra função
 
+                // Incrementa o contador global de colocação
+                globalPlayerRowIndex++;
+                // Determina a classe de cor com base na paridade da colocação
+                const placementColorClass = (globalPlayerRowIndex % 2 !== 0) ? 'placement-white' : 'placement-yellow';
+
                 // Cria a linha da tabela
                 const row = `
                     <tr>
-                        <td data-label="Colocação"></td>
-                        <td data-label="Dia da Semana">${getDayOfWeek(match.start_time)}</td>
+                        <td data-label="Colocação" class="${placementColorClass}">${globalPlayerRowIndex}</td> <td data-label="Dia da Semana">${getDayOfWeek(match.start_time)}</td>
                         <td data-label="ID Partida">${match.match_id}</td>
                         <td data-label="Data">${formatDate(match.start_time)}</td>
                         <td data-label="Hora">${formatTime(match.start_time)}</td>
@@ -167,7 +176,8 @@ async function loadAllMatchDetails() {
                         <td data-label="K">${kills}</td>
                         <td data-label="D">${deaths}</td>
                         <td data-label="A">${assists}</td>
-                        <td data-label="Pontos">${playerEvalScore}</td> <td data-label="Heróis" class="hero-name" data-hero-id="${heroId}">${heroName}</td>
+                        <td data-label="Pontos">${playerEvalScore}</td>
+                        <td data-label="Heróis" class="hero-name" data-hero-id="${heroId}">${heroName}</td>
                     </tr>
                 `;
                 matchDetailsTableBody.insertAdjacentHTML('beforeend', row);

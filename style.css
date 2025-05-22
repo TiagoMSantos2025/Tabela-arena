@@ -263,6 +263,7 @@ caption {
 }
 
 th, td { /* Aplicar estas propriedades a ambos th e td para uniformidade */
+    font-family: 'Bestime', sans-serif; /* EXPLICITAMENTE APLICA A FONTE BESTIME AQUI */
     padding: 10px 12px; /* **DIMINUI O PADDING PARA DAR MAIS ESPAÇO À FONTE** */
     text-align: left;
     border-bottom: 1px solid var(--border-color);
@@ -297,6 +298,16 @@ tr:nth-child(odd) {
 tr:last-child td {
     border-bottom: none;
 }
+
+/* NOVAS CLASSES PARA AS CORES DA COLOCAÇÃO */
+.placement-white {
+    color: white;
+}
+
+.placement-yellow {
+    color: var(--accent-color); /* Usando a cor de destaque (amarelo) */
+}
+
 
 /* ====================================================================== */
 /* ESTILOS PARA OS ITENS DO TIME (PARA REPLICAR A IMAGEM 1526.65.65.JPG) */
